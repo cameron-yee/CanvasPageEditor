@@ -3,14 +3,18 @@ import json
 import pprint
 import re
 
+#Gets every page in a course and appends the page url to a list
 def getCoursePages(course_id, headers):
     # page = 1
     count = 0
     pages = []
     isNext = True
-    url = url_base + course_id + '/pages?per_page=100&page=1&sort=created_at&order=asc'
+    url = url_base + course_id + '/pages?per_page=1&page=1&sort=created_at&order=asc'
     r = requests.get(url, headers=headers, timeout=20)
 
+    #
+    #TODO: currently gets every page except last page.  Need to find how to include last page in loop
+    #
     try:
         while isNext:
             r = requests.get(r.links['next']['url'], headers=headers)
@@ -37,6 +41,17 @@ def getCoursePages(course_id, headers):
     # print(count)
 
 
+#Gets html body content for each page in course
+def getHtmlData(pages):
+    html_data = []
+    for page in pages:
+        with open(page + '.html', 'r') as f:
+            contents = f.read
+            html_data.append(contents) 
+            f.close()
+    print(html_data)
+
+#Updates html body content for each Canvas page in a given coures given the directory where the html files are stored
 def updateCoursePages(pages, headers):
     # url_pages = '?per_page=50&page=' + str(page) + '&workflow_state=active'
     pages_html = []
@@ -50,24 +65,15 @@ def updateCoursePages(pages, headers):
     
     # print(json.dumps(pages, sort_keys=True, indent=4))
 
-def getHtmlData(pages):
-    html_data = []
-    for page in pages:
-        with open(page + '.html', 'r') as f:
-            contents = f.read
-            html_data.append(contents) 
-            f.close()
-    print(html_data)
-
-
+#Prints json object for individual page
 def getPageInformation(course_id, page_url, headers):
     url = url_base + course_id + '/pages/' + page_url
     r = requests.get(url, headers=headers)
     r.json
     x = json.loads(r.text)
-    # print(json.dumps(x, sort_keys=True, indent=4))
+    print(json.dumps(x, sort_keys=True, indent=4))
 
-
+#Updates html body content for given Canvas page and html file
 def updateIndividualPage(course_id, headers, page_url, file_name):
     url = url_base + course_id + '/pages/' + page_url
     with open(file_name, 'r') as f:
@@ -76,9 +82,30 @@ def updateIndividualPage(course_id, headers, page_url, file_name):
     r = requests.put(url, headers=headers, data=data)
 
 
-# def updateCoursePages(pages):
-#     for page in pages:
+#Create a new course in Canvas
+def createNewCourse(course_name, headers):
+    url = 'https://***REMOVED***.instructure.com/api/v1/accounts/1/courses'
+    data = [('course[name]', course_name),]
+    r = requests.post(url, headers=headers, data=data)
 
+#Create a new module in a Canvas Course
+def createNewModule(module_name, course_id, headers):
+    url = url_base + course_id + '/modules'
+    data = [('module[name]', module_name),]
+    r = requests.post(url, headers=headers, data=data)
+
+
+#Create a new page in a Canvas Course
+def createNewPage(page_title, html_file, course_id, headers):
+    url = url_base + course_id + '/pages'
+    with open(html_file, 'r') as f:
+        body = f.read()
+        f.close()
+    data = [('wiki_page[title]', page_title), ('wiki_page[body]', body),]
+    r = requests.post(url, headers=headers, data=data)
+
+
+#Gets token from hidden file so it will not show up on Git
 def getAccessToken():
     with open('Token.txt', 'r') as f:
         token = f.read()
@@ -89,9 +116,13 @@ def getAccessToken():
 if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
-    course_id = '25'
+    course_id = '121'
     page_url = 'test'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
 
     # pages = getCoursePages(course_id, headers)
-    updateIndividualPage(course_id, headers, page_url, 'test.html')
+    # getHtmlData(pages)
+    # updateIndividualPage(course_id, headers, page_url, 'test.html')
+    # createNewCourse('Canvas API Test Course', headers)
+    # createNewModule('Test Module Creation', course_id, headers)
+    createNewPage('Test Page', 'test.html', course_id, headers)
