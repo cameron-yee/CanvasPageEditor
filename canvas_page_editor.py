@@ -20,7 +20,7 @@ def getCoursePages(course_id, headers):
             count += 1
             # print(r.links['next']['url'])
     except KeyError:
-        print(r.links['last']['url'])
+        # print(r.links['last']['url'])
         # page_no = re.match('&page=[0-9]+', r.links['last']['url'])
         # print(page_no)
         # page_no = re.match('[0-9]+', page_no)
@@ -37,10 +37,10 @@ def getCoursePages(course_id, headers):
     # print(count)
 
 
-def updatePages(pages, headers):
+def updateCoursePages(pages, headers):
     # url_pages = '?per_page=50&page=' + str(page) + '&workflow_state=active'
     pages_html = []
-    for page in pages:
+    for page_url in pages:
         url = url_base + course_id + '/pages/' + page + '?wiki_page[body]=' + updated_html
         r = requests.get(url, headers=headers)
         data = r.json()
@@ -56,6 +56,7 @@ def getHtmlData(pages):
         with open(page + '.html', 'r') as f:
             contents = f.read
             html_data.append(contents) 
+            f.close()
     print(html_data)
 
 
@@ -65,6 +66,14 @@ def getPageInformation(course_id, page_url, headers):
     r.json
     x = json.loads(r.text)
     # print(json.dumps(x, sort_keys=True, indent=4))
+
+
+def updateIndividualPage(course_id, headers, page_url, file_name):
+    url = url_base + course_id + '/pages/' + page_url
+    with open(file_name, 'r') as f:
+        html = f.read()
+    data = [('wiki_page[body]', html),]
+    r = requests.put(url, headers=headers, data=data)
 
 
 # def updateCoursePages(pages):
@@ -81,9 +90,8 @@ if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
     course_id = '25'
-    page_url = 'ss-ch-1-you-are-what-you-eat'
+    page_url = 'test'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
-    pages = getCoursePages(course_id, headers)
-    # updatePages(pages, headers)
 
-    # getPageInformation(course_id, page_url, headers)
+    # pages = getCoursePages(course_id, headers)
+    updateIndividualPage(course_id, headers, page_url, 'test.html')
