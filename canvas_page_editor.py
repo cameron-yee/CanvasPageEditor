@@ -2,6 +2,17 @@ import requests
 import json
 import pprint
 import re
+# import inquirer
+
+#Not sure how to download inquirer
+def selectAction():
+    questions = [
+        inquirer.List('action',
+                      message="What do you want to do?",
+                      choices=['Create course', 'Create module', 'Create page', 'Update page']
+        ),
+    ]
+    answers = inquirer.prompt(questions)
 
 #Gets every page in a course and appends the page url to a list
 def getCoursePages(course_id, headers):
@@ -51,6 +62,7 @@ def getHtmlData(pages):
             f.close()
     print(html_data)
 
+
 #Updates html body content for each Canvas page in a given coures given the directory where the html files are stored
 def updateCoursePages(pages, headers):
     # url_pages = '?per_page=50&page=' + str(page) + '&workflow_state=active'
@@ -65,6 +77,7 @@ def updateCoursePages(pages, headers):
     
     # print(json.dumps(pages, sort_keys=True, indent=4))
 
+
 #Prints json object for individual page
 def getPageInformation(course_id, page_url, headers):
     url = url_base + course_id + '/pages/' + page_url
@@ -72,6 +85,7 @@ def getPageInformation(course_id, page_url, headers):
     r.json
     x = json.loads(r.text)
     print(json.dumps(x, sort_keys=True, indent=4))
+
 
 #Updates html body content for given Canvas page and html file
 def updateIndividualPage(course_id, headers, page_url, file_name):
@@ -87,6 +101,14 @@ def createNewCourse(course_name, headers):
     url = 'https://***REMOVED***.instructure.com/api/v1/accounts/1/courses'
     data = [('course[name]', course_name),]
     r = requests.post(url, headers=headers, data=data)
+
+
+#Update course name
+def updateCourseName(new_course_name, course_id, headers):
+    url = url_base + course_id
+    data = [('course[name]', new_course_name),]
+    r = requests.put(url, headers=headers, data=data)
+
 
 #Create a new module in a Canvas Course
 def createNewModule(module_name, course_id, headers):
@@ -116,13 +138,19 @@ def getAccessToken():
 if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
-    course_id = '121'
+    course_id = '122'
     page_url = 'test'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
+    updateCourseName('Earth\'s Water Systems Teacher Guide', course_id, headers)
 
-    # pages = getCoursePages(course_id, headers)
+#NEED UPDATING:
+    #getCoursePages(course_id, headers)
+    # selectAction()
+
+#FUNCTIONAL:
     # getHtmlData(pages)
     # updateIndividualPage(course_id, headers, page_url, 'test.html')
     # createNewCourse('Canvas API Test Course', headers)
     # createNewModule('Test Module Creation', course_id, headers)
-    createNewPage('Test Page', 'test.html', course_id, headers)
+    # createNewPage('Test Page', 'test.html', course_id, headers)
+
