@@ -1,7 +1,9 @@
 import requests
+from glob import glob
 import json
 import pprint
 import re
+import os
 # import inquirer
 
 #Not sure how to download inquirer
@@ -117,13 +119,39 @@ def createNewModule(module_name, course_id, headers):
     r = requests.post(url, headers=headers, data=data)
 
 
+#Returns the id for the wanted module
+def getModuleId(course_id, headers, module_name):
+    url = url_base + course_id + '/modules'
+    data = [('include[]', 'items'),]
+    r = requests.get(url, headers=headers, data=data)
+    data = r.json()
+    for i in range(len(data)):
+        if(data[i]['name'] == module_name):
+            return str(data[i]['id'])
+        else:
+            return 'No Module Found'
+
+
+#Create a new page within a Canvas course module
+def createPageInModule(course_id, headers, page_name, module_name):
+    module_id = getModuleId(course_id, headers, module_name)
+    url = url_base + course_id + '/modules/' + module_id + '/items'
+    page_url = page_name.lower()
+    page_url = page_url.replace(' ', '-')
+    data = [('module_item[type]', 'Page'),
+            ('module_item[title]', page_name),
+            ('module_item[page_url]', page_url)]
+    r = requests.post(url, headers=headers, data=data)
+    return page_url
+
+
 #Create a new page in a Canvas Course
-def createNewPage(page_title, html_file, course_id, headers):
+def createNewPage(course_id, headers, page_name, html_file):
     url = url_base + course_id + '/pages'
     with open(html_file, 'r') as f:
         body = f.read()
         f.close()
-    data = [('wiki_page[title]', page_title), ('wiki_page[body]', body),]
+    data = [('wiki_page[title]', page_name), ('wiki_page[body]', body),]
     r = requests.post(url, headers=headers, data=data)
 
 
@@ -135,16 +163,39 @@ def getAccessToken():
     return token
 
 
+#Creates pages in Canvas course module and adds html content to each page
+def createPagesAndAddContent(course_id, headers, page_titles, html_files, module_name):
+    assert(len(page_titles) == len(html_files))
+    for i in range(len(page_titles)):
+        page_url = createPageInModule(course_id, headers, page_titles[i], module_name)
+        updateIndividualPage(course_id, headers, page_url, html_files[i])
+
+
+#Creates pages in Canvas course and adds html content to each page
+def createPagesAndAddContent(course_id, headers, page_titles, html_files):
+    assert(len(page_titles) == len(html_files))
+    for i in range(len(page_titles)):
+        page_url = createPage(course_id, headers, page_titles[i])
+        updateIndividualPage(course_id, headers, page_url, html_files[i])
+
+
 if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
     course_id = '122'
     page_url = 'test'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
-    updateCourseName('Earth\'s Water Systems Teacher Guide', course_id, headers)
+    page_titles = ['Table of Contents','System Requirements','Using the Course','Lesson 1: Water All Around Us','Lesson 2: Surface Water','Lesson 3: Groundwater','Lesson 4: Watersheds','Lesson 5: Atmosphere','Lesson 6: Oceans','Lesson 7: Human Impacts on Water Resources']
+    html_files = glob('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/mhs_te/*.html')
+    module_name = 'Teacher Guide'
+
+    createPagesAndAddContent(course_id, headers, page_titles, html_files, module_name)
+
+
+
 
 #NEED UPDATING:
-    #getCoursePages(course_id, headers)
+    # getCoursePages(course_id, headers)
     # selectAction()
 
 #FUNCTIONAL:
