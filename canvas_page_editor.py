@@ -4,14 +4,12 @@ import json
 import pprint
 import re
 import os
-# import inquirer
 
-#Not sure how to download inquirer
 def selectAction():
     questions = [
         inquirer.List('action',
                       message="What do you want to do?",
-                      choices=['Create course', 'Create module', 'Create page', 'Update page']
+                      choices=['Create course', 'Create module', 'Create page', 'Update page'],
         ),
     ]
     answers = inquirer.prompt(questions)
@@ -22,36 +20,31 @@ def getCoursePages(course_id, headers):
     count = 0
     pages = []
     isNext = True
-    url = url_base + course_id + '/pages?per_page=1&page=1&sort=created_at&order=asc'
+    first = True
+    url = url_base + course_id + '/pages?per_page=50&page=1&sort=title&order=asc'
     r = requests.get(url, headers=headers, timeout=20)
 
-    #
-    #TODO: currently gets every page except last page.  Need to find how to include last page in loop
-    #
     try:
+        while first:
+            r = requests.get(r.links['current']['url'], headers=headers)
+            print(r.links['current']['url'])
+            data = r.json()
+            for page in data:
+                pages.append(page['url'])
+            first = False
         while isNext:
             r = requests.get(r.links['next']['url'], headers=headers)
             data = r.json()
             for page in data:
                 pages.append(page['url'])
             count += 1
-            # print(r.links['next']['url'])
+            print(r.links['next']['url'])
     except KeyError:
-        # print(r.links['last']['url'])
-        # page_no = re.match('&page=[0-9]+', r.links['last']['url'])
-        # print(page_no)
-        # page_no = re.match('[0-9]+', page_no)
-        # print(page_no)
-        # r = requests.get(url_base + course_id + 'pages?page=' + page_no)
-        # print(r.links)
-        # page = r.json()
-        # pages.append(page[0])
         isNext = False
 
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(pages)
     return pages
-    # print(count)
 
 
 #Gets html body content for each page in course
@@ -66,18 +59,14 @@ def getHtmlData(pages):
 
 
 #Updates html body content for each Canvas page in a given coures given the directory where the html files are stored
-def updateCoursePages(pages, headers):
-    # url_pages = '?per_page=50&page=' + str(page) + '&workflow_state=active'
-    pages_html = []
+def updateCoursePages(course_id, headers, html_files):
+    pages = getCoursePages(course_id, headers)
+    count = 0
+
+    assert(len(pages) == len(html_files))
     for page_url in pages:
-        url = url_base + course_id + '/pages/' + page + '?wiki_page[body]=' + updated_html
-        r = requests.get(url, headers=headers)
-        data = r.json()
-        pages_html.append(data['body'])
-    for body in pages_html:
-        print(pages_html)
-    
-    # print(json.dumps(pages, sort_keys=True, indent=4))
+        updateIndividualPage(course_id, headers, page_url, html_files[count])
+        count += 1
 
 
 #Prints json object for individual page
@@ -163,7 +152,7 @@ def getAccessToken():
     return token
 
 
-#Creates pages in Canvas course module and adds html content to each page
+#Creates pages in Canvas course modulec and adds html content to each page
 def createPagesAndAddContent(course_id, headers, page_titles, html_files, module_name):
     assert(len(page_titles) == len(html_files))
     for i in range(len(page_titles)):
@@ -189,16 +178,15 @@ if __name__  == '__main__':
     html_files = glob('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/mhs_te/*.html')
     module_name = 'Teacher Guide'
 
-    createPagesAndAddContent(course_id, headers, page_titles, html_files, module_name)
-
-
-
+    print(html_files)
+    # getCoursePages(course_id, headers)
+    updateCoursePages(course_id, headers, html_files)
 
 #NEED UPDATING:
-    # getCoursePages(course_id, headers)
     # selectAction()
 
 #FUNCTIONAL:
+    # getCoursePages(course_id, headers)
     # getHtmlData(pages)
     # updateIndividualPage(course_id, headers, page_url, 'test.html')
     # createNewCourse('Canvas API Test Course', headers)
