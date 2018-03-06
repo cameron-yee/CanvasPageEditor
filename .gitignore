@@ -1,2 +1,4 @@
 auth.py
 .DS_Store
+TODO
+__pycache__/

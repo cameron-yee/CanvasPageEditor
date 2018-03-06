@@ -8,6 +8,7 @@ import argparse
 import auth
 from collections import OrderedDict
 
+#CLI command definitions
 def selectAction():
     parser = argparse.ArgumentParser(description='Pick action.')
 
@@ -17,33 +18,57 @@ def selectAction():
     }
     
     parser.add_argument('command', choices=commands.keys())
+    #
     args = parser.parse_args()
 
     commands[args.command]()
 
 
+#Returns dictionary with subfolders as key and html files as values
+def getHtmlFolders(course_id, headers, top_directory):
+    directories = [x[0] for x in os.walk(top_directory)]
+    directory_dict = {}
+
+    for directory in directories:
+        directory_dict[directory] = glob(directory + '{}'.format('/*.html'))
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(directory_dict)
+
+    return directory_dict
+
+
 #Gets html body content for each page in course
 def getHtmlData(html_files):
-    html_data = [] 
-    for page in html_files:
-        with open(page, 'r') as f: 
-            contents = f.read()
-            html_data.append(contents) 
-        f.close()
-    return html_data
+    # for key in directory_dict:
+        html_data = [] 
+        for page in html_files:
+            with open(page, 'r') as f: 
+                contents = f.read()
+                html_data.append(contents) 
+            f.close()
+        return html_data
 
 
-def storeHtmlData(html_files):
-    html_data = getHtmlData(html_files)
+#TODO: BROKEN, see notes
+#Stores html data in ordered dictionary
+def storeHtmlData(course_id, headers, top_directory):
+    directory_dict = getHtmlFolders(course_id, headers, top_directory)
     html_dict = {}
+    sorted_dict = {}
 
-    for i in range(len(html_files)):
-        key = re.search('\d+_(\S+.html$)', html_files[i])
-        #sets the file 'url' without the 00_ as the key
-        #stores both the full html file and the html data from the file
-        html_dict[str(key.group(1))] = html_files[i], html_data[i]
-        #sorts dictionary alphabetically by key
-        sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
+    for directory in directory_dict:
+        html_data = getHtmlData(directory_dict[directory])
+        for page in html_data:
+            print(directory)
+            # key = re.search('\d+_(\S+.html$)', page)
+            # #sets the file 'url' without the 00_ as the key
+            # #stores both the full html file and the html data from the file
+            # html_dict[str(key.group(1))] = directory_dict[directory], page
+            # #sorts dictionary alphabetically by key
+            # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
+
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(sorted_dict)
     return sorted_dict
 
 
@@ -81,8 +106,8 @@ def getCoursePages(course_id, headers):
     except KeyError:
         isNext = False
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(pages)
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(pages)
     return pages
 
 
@@ -111,20 +136,18 @@ def getPageInformation(course_id, headers, page_url):
 
 
 #Updates html body content for given Canvas page and html file, for updating entire course
-def updateIndividualPage(course_id, headers, page_url, file_name, html_content):
-    url = url_base + course_id + '/pages/' + page_url
-    data = [('wiki_page[body]', html_content),]
-    r = requests.put(url, headers=headers, data=data)
-
-
-#TODO: Figure out multiple function signature work around
-#Alternate function signature that retrieves the html content
-# def updateIndividualPage(course_id, headers, page_url, file_name):
-#     url = url_base + course_id + '/pages/' + page_url
-#     with open(file_name, 'r') as f:
-#         html = f.read()
-#     data = [('wiki_page[body]', html),]
-#     r = requests.put(url, headers=headers, data=data)
+def updateIndividualPage(course_id, headers, page_url, file_name, html_content=None):
+    if html_content is not None:
+        url = url_base + course_id + '/pages/' + page_url
+        data = [('wiki_page[body]', html_content),]
+        r = requests.put(url, headers=headers, data=data)
+        print('Updating: {}'.format(page_url))
+    else:
+        url = url_base + course_id + '/pages/' + page_url
+        with open(file_name, 'r') as f:
+            html = f.read()
+        data = [('wiki_page[body]', html),]
+        r = requests.put(url, headers=headers, data=data)
 
 
 #Create a new course in Canvas
@@ -226,14 +249,10 @@ if __name__  == '__main__':
     # page_titles = ['Table of Contents','System Requirements','Using the Course','Lesson 1: Water All Around Us','Lesson 2: Surface Water','Lesson 3: Groundwater','Lesson 4: Watersheds','Lesson 5: Atmosphere','Lesson 6: Oceans','Lesson 7: Human Impacts on Water Resources']
     html_files = glob('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te/*.html')
     module_name = 'Teacher Guide'
-    # getCoursePages(course_id, headers)
-    updateCoursePages(course_id, headers, html_files)
-    # getPageInformation(course_id, 'lesson-1-water-all-around-us', headers)
-    # listModuleItems('Teacher Guide', course_id, headers)
-    # print(html_files)
+    # updateCoursePages(course_id, headers, html_files)
+    # getHtmlFolders(course_id, headers, '/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
+    storeHtmlData(course_id, headers, '/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
     # storeHtmlData(html_files)
-    # getHtmlData(html_files)
-    # getCoursePages(course_id, headers)
 
 #NEED UPDATING:
     # selectAction
