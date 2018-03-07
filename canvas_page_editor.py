@@ -129,23 +129,30 @@ def getCoursePages(course_id, headers):
     return pages
 
 
-#Update content for each Canvas page in a given coures given the directory where the html files are stored
+#Gets html body content for each page in course
+def getHtmlData(pages):
+    html_data = []
+    for page in pages:
+        with open(page + '.html', 'r') as f:
+            contents = f.read
+            html_data.append(contents) 
+            f.close()
+    print(html_data)
+
+
+#Updates html body content for each Canvas page in a given coures given the directory where the html files are stored
 def updateCoursePages(course_id, headers, html_files):
     pages = getCoursePages(course_id, headers)
-    sorted_dict = storeHtmlData(html_files)
     count = 0
 
-    assert(len(pages) == len(sorted_dict))
-    for key, value in sorted_dict.items():
-        page_url = pages[count]
-        html_content = value[1]
-        updateIndividualPage(course_id, headers, page_url, value[0], value[1])
+    assert(len(pages) == len(html_files))
+    for page_url in pages:
+        updateIndividualPage(course_id, headers, page_url, html_files[count])
         count += 1
-    print('Success')
 
 
 #Prints json object for individual page
-def getPageInformation(course_id, headers, page_url):
+def getPageInformation(course_id, page_url, headers):
     url = url_base + course_id + '/pages/' + page_url
     r = requests.get(url, headers=headers)
     r.json
@@ -169,35 +176,24 @@ def updateIndividualPage(course_id, headers, page_url, file_name, html_content=N
 
 
 #Create a new course in Canvas
-def createNewCourse(headers, course_name):
+def createNewCourse(course_name, headers):
     url = 'https://***REMOVED***.instructure.com/api/v1/accounts/1/courses'
     data = [('course[name]', course_name),]
     r = requests.post(url, headers=headers, data=data)
 
 
 #Update course name
-def updateCourseName(course_id, headers, new_course_name):
+def updateCourseName(new_course_name, course_id, headers):
     url = url_base + course_id
     data = [('course[name]', new_course_name),]
     r = requests.put(url, headers=headers, data=data)
 
 
 #Create a new module in a Canvas Course
-def createNewModule(course_id, headers, module_name):
+def createNewModule(module_name, course_id, headers):
     url = url_base + course_id + '/modules'
     data = [('module[name]', module_name),]
     r = requests.post(url, headers=headers, data=data)
-
-
-#Lists every item's information 
-def listModuleItems(course_id, headers, module_name):
-    module_id = getModuleId(course_id, headers, module_name)
-    url = url_base + course_id + '/modules/' + module_id + '/items'
-    data = [('module[name]', module_name),]
-    r = requests.get(url, headers=headers, data=data)
-    r.json
-    x = json.loads(r.text)
-    print(json.dumps(x, sort_keys=True, indent=4))
 
 
 #Returns the id for the wanted module
@@ -238,7 +234,9 @@ def createNewPage(course_id, headers, page_name, html_file):
 
 #Gets token from hidden file so it will not show up on Git
 def getAccessToken():
-    token = auth.token
+    with open('Token.txt', 'r') as f:
+        token = f.read()
+        f.close()
     return token
 
 
@@ -282,7 +280,7 @@ if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
     course_id = '122'
-    # page_url = 'test'
+    page_url = 'test'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
     # page_titles = ['Table of Contents','System Requirements','Using the Course','Lesson 1: Water All Around Us','Lesson 2: Surface Water','Lesson 3: Groundwater','Lesson 4: Watersheds','Lesson 5: Atmosphere','Lesson 6: Oceans','Lesson 7: Human Impacts on Water Resources']
     html_files = glob('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te/*.html')
@@ -297,7 +295,7 @@ if __name__  == '__main__':
     # storeHtmlData(html_files)
 
 #NEED UPDATING:
-    # selectAction
+    # selectAction()
 
 #FUNCTIONAL:
     # getCoursePages(course_id, headers)
