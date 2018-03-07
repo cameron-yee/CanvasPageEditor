@@ -9,6 +9,7 @@ import auth
 from collections import OrderedDict
 from colors import bcolors
 
+#CLI command definitions
 def selectAction():
     parser = argparse.ArgumentParser(description='Pick action.')
 
@@ -18,6 +19,7 @@ def selectAction():
     }
     
     parser.add_argument('command', choices=commands.keys())
+    #
     args = parser.parse_args()
 
     commands[args.command]()
@@ -38,16 +40,15 @@ def getHtmlFolders(top_directory):
     return directories
 
 
-#Gets html body content for each page in course
-def getHtmlData(html_files):
-    html_data = [] 
-    for page in html_files:
-        with open(page, 'r') as f: 
-            contents = f.read()
-            html_data.append(contents) 
-        f.close()
-    return html_data
+#Returns dictionary with subfolders as key and html files as values
+def getHtmlFolders(course_id, headers, top_directory):
+    directories = [x[0] for x in os.walk(top_directory)]
+    directory_dict = {}
 
+    for directory in directories:
+        directory_dict[directory] = glob(directory + '{}'.format('/*.html'))
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(directory_dict)
 
 def storeHtmlData(html_files):
     html_data = getHtmlData(html_files)
@@ -123,8 +124,8 @@ def getCoursePages(course_id, headers):
     except KeyError:
         isNext = False
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(pages)
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(pages)
     return pages
 
 
@@ -153,20 +154,18 @@ def getPageInformation(course_id, headers, page_url):
 
 
 #Updates html body content for given Canvas page and html file, for updating entire course
-def updateIndividualPage(course_id, headers, page_url, file_name, html_content):
-    url = url_base + course_id + '/pages/' + page_url
-    data = [('wiki_page[body]', html_content),]
-    r = requests.put(url, headers=headers, data=data)
-
-
-#TODO: Figure out multiple function signature work around
-#Alternate function signature that retrieves the html content
-# def updateIndividualPage(course_id, headers, page_url, file_name):
-#     url = url_base + course_id + '/pages/' + page_url
-#     with open(file_name, 'r') as f:
-#         html = f.read()
-#     data = [('wiki_page[body]', html),]
-#     r = requests.put(url, headers=headers, data=data)
+def updateIndividualPage(course_id, headers, page_url, file_name, html_content=None):
+    if html_content is not None:
+        url = url_base + course_id + '/pages/' + page_url
+        data = [('wiki_page[body]', html_content),]
+        r = requests.put(url, headers=headers, data=data)
+        print('Updating: {}'.format(page_url))
+    else:
+        url = url_base + course_id + '/pages/' + page_url
+        with open(file_name, 'r') as f:
+            html = f.read()
+        data = [('wiki_page[body]', html),]
+        r = requests.put(url, headers=headers, data=data)
 
 
 #Create a new course in Canvas
@@ -291,6 +290,11 @@ if __name__  == '__main__':
     # updateCoursePages(course_id, headers, html_files)
     # storeHtmlData(html_files)
     doit('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te')
+    module_name = 'Teacher Guide'
+    # updateCoursePages(course_id, headers, html_files)
+    # getHtmlFolders(course_id, headers, '/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
+    storeHtmlData(course_id, headers, '/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
+    # storeHtmlData(html_files)
 
 #NEED UPDATING:
     # selectAction
