@@ -7,6 +7,7 @@ import os
 import argparse
 import auth
 from collections import OrderedDict
+from colors import bcolors
 
 def selectAction():
     parser = argparse.ArgumentParser(description='Pick action.')
@@ -20,6 +21,21 @@ def selectAction():
     args = parser.parse_args()
 
     commands[args.command]()
+    
+
+#Returns dictionary with subfolders as key and html files as values
+def getHtmlFolders(top_directory):
+    directories = [x[0] for x in os.walk(top_directory)]
+    # print(directories)
+    # directory_list = []
+
+    # for directory in directories:
+    #     print(directory)
+    #     directory_dict[directory] = glob(directory + '{}'.format('/*.html'))
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(directory_dict)
+    
+    return directories
 
 
 #Gets html body content for each page in course
@@ -36,15 +52,41 @@ def getHtmlData(html_files):
 def storeHtmlData(html_files):
     html_data = getHtmlData(html_files)
     html_dict = {}
+    unset = []
+    errors = False
 
     for i in range(len(html_files)):
-        key = re.search('\d+_(\S+.html$)', html_files[i])
+        key = re.search('\d+_([^/]+.html$)', html_files[i])
         #sets the file 'url' without the 00_ as the key
         #stores both the full html file and the html data from the file
-        html_dict[str(key.group(1))] = html_files[i], html_data[i]
+        if key:
+            html_dict[str(key.group(1))] = html_files[i], html_data[i]
+        else:
+            unset.append(html_files[i])
+            print(bcolors.FAIL + 'Unacceptable file names found.  Fix the following files: {}'.format(unset) + bcolors.ENDC)
+            print(bcolors.WARNING + 'Make sure files follow the pattern: \'\\d+_([^/]+.html$)\'' + bcolors.ENDC)
+            errors = True
         #sorts dictionary alphabetically by key
-        sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
-    return sorted_dict
+        # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
+
+    # unset = [x for x in unset if x != []]
+    assert(errors == False)
+    print(html_dict)
+    return html_dict
+
+
+def globHtml(directory):
+    html_files = []
+    html_files.append(glob(directory + '{}'.format('/*.html')))
+    print(html_files)
+    return html_files
+    # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
+    # for dictionary in sorted_dict:
+    #     print(dictionary)
+
+    # print(sorted_dict)
+    # return all_files
+
 
 
 #NOT SURE IF THIS FUNCTION IS NECESSARY
@@ -217,6 +259,26 @@ def createPagesAndAddContent(course_id, headers, page_titles, html_files):
         updateIndividualPage(course_id, headers, page_url, html_files[i])
 
 
+def doit(top_directory):
+    directories = getHtmlFolders(top_directory)
+    #list of dictionaries containing html files
+    all_files = []
+    for directory in directories:
+        html_files = globHtml(directory)
+        # html_dict = storeHtmlData(html_files)
+        # all_files.append(html_dict)
+    
+    print(all_files)
+    # html_folders = getHtmlFolders('/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
+    # all_html_files = []
+    # for i in range(len(html_folders)):
+    #     all_html_files.append(glob(html_folders[i] + '{}'.format('/*.html')))
+    #     # x = appendFiles(all_html_files[i])
+    #     # all_html_files.append(x)
+    # for i in all_html_files:
+    #     print(i)
+    
+
 if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
@@ -225,15 +287,10 @@ if __name__  == '__main__':
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
     # page_titles = ['Table of Contents','System Requirements','Using the Course','Lesson 1: Water All Around Us','Lesson 2: Surface Water','Lesson 3: Groundwater','Lesson 4: Watersheds','Lesson 5: Atmosphere','Lesson 6: Oceans','Lesson 7: Human Impacts on Water Resources']
     html_files = glob('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te/*.html')
-    module_name = 'Teacher Guide'
-    # getCoursePages(course_id, headers)
-    updateCoursePages(course_id, headers, html_files)
-    # getPageInformation(course_id, 'lesson-1-water-all-around-us', headers)
-    # listModuleItems('Teacher Guide', course_id, headers)
-    # print(html_files)
+    # module_name = 'Teacher Guide'
+    # updateCoursePages(course_id, headers, html_files)
     # storeHtmlData(html_files)
-    # getHtmlData(html_files)
-    # getCoursePages(course_id, headers)
+    doit('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te')
 
 #NEED UPDATING:
     # selectAction
