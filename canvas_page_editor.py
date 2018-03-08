@@ -25,34 +25,34 @@ def selectAction():
     commands[args.command]()
     
 
-#Returns dictionary with subfolders as key and html files as values
+#Returns list of sub direct subfolders from given directory
 def getHtmlFolders(top_directory):
-    directories = [x[0] for x in os.walk(top_directory)]
-    # print(directories)
-    # directory_list = []
+    final_directories = []
+    raw_directories = [x for x in os.walk(top_directory)]
+    processed_directories = raw_directories[0][1]
+    for directory in processed_directories:
+          final_directories.append('{}/{}'.format(top_directory, directory)) 
+    return final_directories
 
-    # for directory in directories:
-    #     print(directory)
-    #     directory_dict[directory] = glob(directory + '{}'.format('/*.html'))
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(directory_dict)
-    
-    return directories
+#Returns a list of all html file paths in a given folder
+def globHtml(directory):
+    html_files = []
+    html_files.append(glob(directory + '{}'.format('/**/*.html'), recursive=True))
+    return html_files
+
+    # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
+    # for dictionary in sorted_dict:
+    #     print(dictionary)
+
+    # print(sorted_dict)
+    # return all_files
 
 
-#Returns dictionary with subfolders as key and html files as values
-def getHtmlFolders(course_id, headers, top_directory):
-    directories = [x[0] for x in os.walk(top_directory)]
-    directory_dict = {}
-
-    for directory in directories:
-        directory_dict[directory] = glob(directory + '{}'.format('/*.html'))
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(directory_dict)
-
+#Returns a dictionary of all course pages sorted alphabetically with html file path and html content as values
 def storeHtmlData(html_files):
     html_data = getHtmlData(html_files)
     html_dict = {}
+    sorted_dict = {}
     unset = []
     errors = False
 
@@ -68,33 +68,55 @@ def storeHtmlData(html_files):
             print(bcolors.WARNING + 'Make sure files follow the pattern: \'\\d+_([^/]+.html$)\'' + bcolors.ENDC)
             errors = True
         #sorts dictionary alphabetically by key
-        # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
+        sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
 
-    # unset = [x for x in unset if x != []]
-    assert(errors == False)
-    print(html_dict)
-    return html_dict
+    # assert(errors == False)
+    return sorted_dict
 
 
-def globHtml(directory):
+#Gets html body content for each page in course
+def getHtmlData(html_files):
+    html_data = []
+    for html_file in html_files:
+        if html_file is not None:
+            with open(html_file, 'r') as f:
+                contents = f.read()
+                html_data.append(contents) 
+                f.close()
+    return html_data
+
+
+def updateCoursePages(top_directory):
     html_files = []
-    html_files.append(glob(directory + '{}'.format('/*.html')))
-    print(html_files)
-    return html_files
-    # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
-    # for dictionary in sorted_dict:
-    #     print(dictionary)
+    info_lists = []
+    directories = getHtmlFolders(top_directory)
 
-    # print(sorted_dict)
-    # return all_files
+    #Glob html will work different if there are no sub folders
+    if not directories:
+        html_files = globHtml(top_directory)
+        html_dict = storeHtmlData(html_files[0])
+    else:
+        for i in range(len(directories)):
+            html_info = globHtml(directories[i])
+            info_lists.append(html_info[0])
+        list_of_files = [x for x in info_lists if x != []]
+        for ls in list_of_files:
+            for f in ls:
+                html_files.append(f)
+        html_dict = storeHtmlData(html_files)
 
-
-
-#NOT SURE IF THIS FUNCTION IS NECESSARY
-#Sorts the html files in the same order that Canvas LMS API returns them
-def sortHtmlFiles(paths):
-    html_files = glob(str(path) + '/*.html')
-
+    canvas_pages = getCoursePages(course_id, headers)
+    urls = []
+    for page_url in canvas_pages:
+        urls.append(page_url)
+        
+    assert(len(urls) == len(html_dict))
+    count = 0
+    for key, values in html_dict.items():
+        updateIndividualPage(course_id, headers, urls[count] , values[0], values[1]) 
+        count += 1
+    print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
+    
 
 #Gets every page in a course and appends the page url to a list
 def getCoursePages(course_id, headers):
@@ -109,7 +131,7 @@ def getCoursePages(course_id, headers):
     try:
         while first:
             r = requests.get(r.links['current']['url'], headers=headers)
-            print(r.links['current']['url'])
+            # print(r.links['current']['url'])
             data = r.json()
             for page in data:
                 pages.append(page['url'])
@@ -120,7 +142,7 @@ def getCoursePages(course_id, headers):
             for page in data:
                 pages.append(page['url'])
             count += 1
-            print(r.links['next']['url'])
+            # print(r.links['next']['url'])
     except KeyError:
         isNext = False
 
@@ -129,26 +151,16 @@ def getCoursePages(course_id, headers):
     return pages
 
 
-#Gets html body content for each page in course
-def getHtmlData(pages):
-    html_data = []
-    for page in pages:
-        with open(page + '.html', 'r') as f:
-            contents = f.read
-            html_data.append(contents) 
-            f.close()
-    print(html_data)
-
-
+#DEPRECATED
 #Updates html body content for each Canvas page in a given coures given the directory where the html files are stored
-def updateCoursePages(course_id, headers, html_files):
-    pages = getCoursePages(course_id, headers)
-    count = 0
+# def updateCoursePages(course_id, headers, html_files):
+#     pages = getCoursePages(course_id, headers)
+#     count = 0
 
-    assert(len(pages) == len(html_files))
-    for page_url in pages:
-        updateIndividualPage(course_id, headers, page_url, html_files[count])
-        count += 1
+#     assert(len(pages) == len(html_files))
+#     for page_url in pages:
+#         updateIndividualPage(course_id, headers, page_url, html_files[count])
+#         count += 1
 
 
 #Prints json object for individual page
@@ -166,7 +178,7 @@ def updateIndividualPage(course_id, headers, page_url, file_name, html_content=N
         url = url_base + course_id + '/pages/' + page_url
         data = [('wiki_page[body]', html_content),]
         r = requests.put(url, headers=headers, data=data)
-        print('Updating: {}'.format(page_url))
+        print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC)
     else:
         url = url_base + course_id + '/pages/' + page_url
         with open(file_name, 'r') as f:
@@ -234,9 +246,7 @@ def createNewPage(course_id, headers, page_name, html_file):
 
 #Gets token from hidden file so it will not show up on Git
 def getAccessToken():
-    with open('Token.txt', 'r') as f:
-        token = f.read()
-        f.close()
+    token = auth.token
     return token
 
 
@@ -256,52 +266,29 @@ def createPagesAndAddContent(course_id, headers, page_titles, html_files):
         updateIndividualPage(course_id, headers, page_url, html_files[i])
 
 
-def doit(top_directory):
-    directories = getHtmlFolders(top_directory)
-    #list of dictionaries containing html files
-    all_files = []
-    for directory in directories:
-        html_files = globHtml(directory)
-        # html_dict = storeHtmlData(html_files)
-        # all_files.append(html_dict)
-    
-    print(all_files)
-    # html_folders = getHtmlFolders('/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
-    # all_html_files = []
-    # for i in range(len(html_folders)):
-    #     all_html_files.append(glob(html_folders[i] + '{}'.format('/*.html')))
-    #     # x = appendFiles(all_html_files[i])
-    #     # all_html_files.append(x)
-    # for i in all_html_files:
-    #     print(i)
-    
-
 if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
     course_id = '122'
-    page_url = 'test'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
+
+    updateCoursePages('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te')
+
+
+
+
+
+
+
+
+
+
+
+
+    # page_url = 'test'
+    # html_files = glob('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te/*.html')
     # page_titles = ['Table of Contents','System Requirements','Using the Course','Lesson 1: Water All Around Us','Lesson 2: Surface Water','Lesson 3: Groundwater','Lesson 4: Watersheds','Lesson 5: Atmosphere','Lesson 6: Oceans','Lesson 7: Human Impacts on Water Resources']
-    html_files = glob('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te/*.html')
     # module_name = 'Teacher Guide'
     # updateCoursePages(course_id, headers, html_files)
     # storeHtmlData(html_files)
-    doit('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te')
-    module_name = 'Teacher Guide'
-    # updateCoursePages(course_id, headers, html_files)
-    # getHtmlFolders(course_id, headers, '/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
-    storeHtmlData(course_id, headers, '/Users/cameronyee/Desktop/canvas/courses/mhs/courses')
-    # storeHtmlData(html_files)
-
-#NEED UPDATING:
-    # selectAction()
-
-#FUNCTIONAL:
-    # getCoursePages(course_id, headers)
-    # getHtmlData(pages)
-    # updateIndividualPage(course_id, headers, page_url, 'test.html')
-    # createNewCourse('Canvas API Test Course', headers)
-    # createNewModule('Test Module Creation', course_id, headers)
-    # createNewPage('Test Page', 'test.html', course_id, headers)
-
+    # module_name = 'Teacher Guide'
