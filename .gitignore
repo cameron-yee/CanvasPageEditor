@@ -1,2 +1,5 @@
-Token.txt
+auth.py
 .DS_Store
+TODO
+*.pyc
+
