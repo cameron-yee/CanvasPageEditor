@@ -15,14 +15,21 @@ def selectAction():
 
     commands = {
         'uc': updateCoursePages,
-
     }
     
-    parser.add_argument('command', choices=commands.keys())
-    #
-    args = parser.parse_args()
+    parser.add_argument('command', help="Choose which function to run", choices=commands.keys())
+    parser.add_argument('cid', help="Enter course ID", default="", type=str)
+    parser.add_argument('top_directory', help="Enter the directory that contains the html files, or subfolders that contain the html files", type=str)
 
-    commands[args.command]()
+    args = parser.parse_args()
+    return args
+
+
+# def ucArgs():
+#     parser = argparse.ArgumentParser(description='Arguments required for updateCoursePages()')
+#     parser.add_argument('top_directory', help="Enter the directory that contains the html files, or subfolders that contain the html files", type=str)
+#     uc_args = parser.parse_args()
+#     return uc_args
     
 
 #Returns list of sub direct subfolders from given directory
@@ -267,12 +274,16 @@ def createPagesAndAddContent(course_id, headers, page_titles, html_files):
 
 
 if __name__  == '__main__':
+    args = selectAction()
+    course_id = args.cid
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
-    course_id = '122'
+    # course_id = '122'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
 
-    updateCoursePages('/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te')
+    # '/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te'
+    if args.command == 'uc':
+        updateCoursePages(args.top_directory)
 
 
 
