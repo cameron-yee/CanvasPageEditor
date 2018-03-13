@@ -12,14 +12,24 @@ from colors import bcolors
 #CLI command definitions
 def selectAction():
     parser = argparse.ArgumentParser(description='Pick action.')
+    subparsers = parser.add_subparsers(help='sub-command help')
 
-    commands = {
-        'uc': updateCoursePages,
-    }
+    #commands = {
+    #   'uc': updateCoursePages,
+    #   'ind': updateIndividualPage,
+    #}
+
+    parser_uc = subparsers.add_parser('uc', help='Commands to use when updateCoursePages')
+    parser_uc.add_argument('top_directory', help="Enter the directory that contains the html files, or subfolders that contain the html files", type=str)
+    parser_uc.set_defaults(which='ind')
+
+    parser_ind = subparsers.add_parser('ind', help='Commands to use when updateIndividualPage')
+    parser_ind.add_argument('page_url', help="Enter the last section of the url that the page is on", type=str)
+    parser_ind.add_argument('file_path', help="Enter the path to file on your local device", type=str)
+    parser_ind.set_defaults(which='ind')
     
-    parser.add_argument('command', help="Choose which function to run", choices=commands.keys())
+    #parser.add_argument('command', help="Choose which function to run", choices=commands.keys())
     parser.add_argument('cid', help="Enter course ID", default="", type=str)
-    parser.add_argument('top_directory', help="Enter the directory that contains the html files, or subfolders that contain the html files", type=str)
 
     args = parser.parse_args()
     return args
@@ -180,7 +190,7 @@ def getPageInformation(course_id, page_url, headers):
 
 
 #Updates html body content for given Canvas page and html file, for updating entire course
-def updateIndividualPage(course_id, headers, page_url, file_name, html_content=None):
+def updateIndividualPage(course_id, headers, page_url, file_path, html_content=None):
     if html_content is not None:
         url = url_base + course_id + '/pages/' + page_url
         data = [('wiki_page[body]', html_content),]
@@ -188,7 +198,7 @@ def updateIndividualPage(course_id, headers, page_url, file_name, html_content=N
         print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC)
     else:
         url = url_base + course_id + '/pages/' + page_url
-        with open(file_name, 'r') as f:
+        with open(file_path, 'r') as f:
             html = f.read()
         data = [('wiki_page[body]', html),]
         r = requests.put(url, headers=headers, data=data)
@@ -282,8 +292,10 @@ if __name__  == '__main__':
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
 
     # '/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te'
-    if args.command == 'uc':
-        updateCoursePages(args.top_directory)
+    if args.which == 'uc':
+       updateCoursePages(args.top_directory)
+    if args.which == 'ind':
+       updateIndividualPage(course_id, headers, args.page_url, args.file_path)
 
 
 
