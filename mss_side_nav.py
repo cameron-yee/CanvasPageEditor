@@ -1,4 +1,6 @@
 import re
+from canvas_page_editor import *
+import os
 
 def replace(filename):
     with open(filename, 'r') as f:
@@ -14,13 +16,44 @@ def replace(filename):
             side_nav = '<!-- Side Navigation -->\n\t<div class="col-xs-12 col-md-3 col-lg-2">\n\t\t<div id="side-menu"></div>\n\t</div>\n\n\t<!-- Course Navigation -->\n\t<div id="course-menu" class="col-xs-12 col-md-3 col-lg-2" style="display: none;">\n\t\t<div class="course-menu"></div>\n\t</div>'
             nnc = re.sub(side_nav_pattern, side_nav, nc)
 
-            span_pattern = '<span class="middle-school-science"></span>'
-            new_span =  '<span class="page-title"></span>\n<span id="side-menu-selector" class="Middle School Science"></span>'
+            span_pattern = 'class="Middle School Science"'
+            new_span =  'class="Science and Society"'
             final = re.sub(span_pattern, new_span, nnc)
 
+            print(final)
             f.write(final)
             f.close()
 
 
+def updateAllFiles(top_directory):
+    folders = getHtmlFolders(top_directory)
+    file_paths = []
+    
+    for f in folders:
+        files = globHtml(f)
+        for paths in files:
+            for file_path in paths:
+                m = re.search('\d[\d.]+[^/].html$', file_path)
+                file_paths.append(file_path)
+                print('Updating: {}'.format(m))
+                replace(file_path)
+    return file_paths
+
+
+def prefixFiles(file_paths):
+    for f in file_paths:
+        m = re.search('(\d[\d.]+)_SS_([^/]+.html)$', f)
+        if m is not None:
+            new_name = m.group(1) + '_ss_ch_4_' + m.group(2)
+            new_file_path = re.sub('\d[^/]+.html$', new_name, f)
+            os.rename(f, new_file_path)
+            print(new_file_path)
+
+
 if __name__ == '__main__':
-    replace('test.html')
+    updateAllFiles('/Users/cameronyee/Desktop/canvas/courses/mss/courses/student_edition/html/04_science_and_society')
+    
+
+
+
+
