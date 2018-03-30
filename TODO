@@ -1,0 +1,22 @@
+        1. Get list of course pages from Canvas API (getCoursePages())
+        2. Get list of directories that contain html pages (getHtmlFolders())
+
+
+
+3. For each directory in directories:
+    -For each page in directory:
+        -Store html content
+4. Append each key value pair in one dictionary
+5. Store all key value pairings in one dictionary
+5. Remove 00_ from all keys
+6. Sort dictionary alphebetically
+7. updateCoursePages
+
+
+
+
+1. Get directories
+2. For each directory:
+    1. globHtml()
+    2. storeHtml()
+    3.

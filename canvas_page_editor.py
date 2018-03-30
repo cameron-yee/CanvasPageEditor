@@ -21,7 +21,7 @@ def selectAction():
 
     parser_uc = subparsers.add_parser('uc', help='Commands to use when updateCoursePages')
     parser_uc.add_argument('top_directory', help="Enter the directory that contains the html files, or subfolders that contain the html files", type=str)
-    parser_uc.set_defaults(which='ind')
+    parser_uc.set_defaults(which='uc')
 
     parser_ind = subparsers.add_parser('ind', help='Commands to use when updateIndividualPage')
     parser_ind.add_argument('page_url', help="Enter the last section of the url that the page is on", type=str)
@@ -127,12 +127,21 @@ def updateCoursePages(top_directory):
     for page_url in canvas_pages:
         urls.append(page_url)
         
-    assert(len(urls) == len(html_dict))
-    count = 0
-    for key, values in html_dict.items():
-        updateIndividualPage(course_id, headers, urls[count] , values[0], values[1]) 
-        count += 1
-    print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
+    #because Canvas sorts different than Python
+    sorted_urls = sorted(urls)
+    try:
+        assert(len(sorted_urls) == len(html_dict))
+        count = 0
+        for key, values in html_dict.items():
+            updateIndividualPage(course_id, headers, sorted_urls[count] , values[0], values[1]) 
+            count += 1
+        print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
+    except AssertionError:
+        count = 0
+        print(len(html_dict), len(sorted_urls))
+        for key, value in html_dict.items():
+            print(key, bcolors.WARNING + sorted_urls[count] + bcolors.ENDC)
+            count += 1
     
 
 #Gets every page in a course and appends the page url to a list
@@ -142,7 +151,7 @@ def getCoursePages(course_id, headers):
     pages = []
     isNext = True
     first = True
-    url = url_base + course_id + '/pages?per_page=50&page=1&sort=title&order=asc'
+    url = url_base + course_id + '/pages?per_page=300&page=1&sort=title&order=asc'
     r = requests.get(url, headers=headers, timeout=20)
 
     try:
