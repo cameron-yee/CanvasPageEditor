@@ -43,4 +43,6 @@ def upload_all(course):
     upload_js(course)
     upload_html(course)
 
+if __name__ == '__main__':
+    upload_css('3dmss')
 
