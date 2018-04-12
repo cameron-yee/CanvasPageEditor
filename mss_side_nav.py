@@ -8,19 +8,24 @@ def replace(filename):
         f.close()
 
         with open(filename, 'w') as f:
-            id_pattern = '<div class="col-xs-12 col-lg-10">'
-            new_id = '<div id="mss-content" class="col-xs-12 col-md-9 col-lg-10">'
-            nc = re.sub(id_pattern, new_id, contents)
+            #id_pattern = '<div class="col-xs-12 col-lg-10">'
+            #new_id = '<div id="mss-content" class="col-xs-12 col-md-9 col-lg-10">'
+            #nc = re.sub(id_pattern, new_id, contents)
+
+            side_nav_pattern = '(<!-- Course\s*[\s\S]*?(?=\n.*?<!--|$))'
+            side_nav = ''
+            nc = re.sub(side_nav_pattern, side_nav, contents)
 
             side_nav_pattern = '(<!-- Side\s*[\s\S]*?(?=\n.*?<!--|$))'
-            side_nav = '<!-- Side Navigation -->\n\t<div class="col-xs-12 col-md-3 col-lg-2">\n\t\t<div id="side-menu"></div>\n\t</div>\n\n\t<!-- Course Navigation -->\n\t<div id="course-menu" class="col-xs-12 col-md-3 col-lg-2" style="display: none;">\n\t\t<div class="course-menu"></div>\n\t</div>'
-            nnc = re.sub(side_nav_pattern, side_nav, nc)
+            side_nav = '<!-- Side Navigation -->\n\t<div class="col-xs-12 col-md-3 col-lg-2">\n\t\t<div id="side-menu"></div>\n\t</div>\n\t<!-- Course Navigation -->\n\t<div id="course-menu" class="col-xs-12 col-md-3 col-lg-2" style="display: none;">\n\t\t<div class="course-menu"></div>\n\t</div>\n'
 
-            span_pattern = 'class="Middle School Science"'
-            new_span =  'class="Science and Society"'
-            final = re.sub(span_pattern, new_span, nnc)
+            final = re.sub(side_nav_pattern, side_nav, nc)
 
-            print(final)
+            #span_pattern = 'class="Middle School Science"'
+            #new_span =  'class="Science and Society"'
+            #final = re.sub(span_pattern, new_span, nnc)
+
+            #print(side_nav)
             f.write(final)
             f.close()
 
