@@ -3,6 +3,7 @@ from shutil import copyfile
 import os
 from glob import glob
 import re
+from colors import bcolors
 
 def upload_css(course):
     session = ftplib.FTP('***REMOVED***', '***REMOVED***', '***REMOVED***')
@@ -40,8 +41,12 @@ def upload_html(course):
 
 def upload_all(course):
     upload_css(course)
+    print(bcolors.WARNING + 'CSS Uploaded' + bcolors.ENDC)
     upload_js(course)
+    print(bcolors.WARNING + 'JS Uploaded' + bcolors.ENDC)
     upload_html(course)
+    print(bcolors.WARNING + 'HTML Uploaded' + bcolors.ENDC)
+    print(bcolors.FAIL + 'DONE' + bcolors.ENDC)
 
 if __name__ == '__main__':
     upload_css('3dmss')
