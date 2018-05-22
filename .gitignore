@@ -1,5 +1,4 @@
-auth.py
-.DS_Store
-TODO
+*.html
 *.pyc
-
+.DS_Store
+*.pyc
