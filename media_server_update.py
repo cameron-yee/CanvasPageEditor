@@ -15,7 +15,7 @@ def upload_css(course):
         os.remove('./concat.css')
         session.quit()
         print(bcolors.WARNING + 'CSS Uploaded' + bcolors.ENDC)
-    except ftplib.error_perm as err:
+    except (ftplib.error_perm, FileNotFoundError):
         print(bcolors.FAIL + 'No concat.css file' + bcolors.ENDC)
 
 
@@ -29,7 +29,7 @@ def upload_js(course):
         os.remove('./concat.js')
         session.quit()
         print(bcolors.WARNING + 'JS Uploaded' + bcolors.ENDC)
-    except ftplib.error_perm as err:
+    except (ftplib.error_perm, FileNotFoundError):
         print(bcolors.FAIL + 'No concat.js file' + bcolors.ENDC)
 
 
@@ -47,7 +47,7 @@ def upload_html(course):
             os.remove('./{}'.format(menu_name))
         session.quit()
         print(bcolors.WARNING + 'HTML Uploaded' + bcolors.ENDC)
-    except ftplib.error_perm as err:
+    except (ftplib.error_perm, FileNotFoundError):
         print(bcolors.FAIL + 'No HTML file' + bcolors.ENDC)
 
 
