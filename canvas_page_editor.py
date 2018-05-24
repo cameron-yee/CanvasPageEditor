@@ -161,18 +161,15 @@ def updateCoursePages(top_directory):
             url = matched_dict[count][0]
             path = html_dict[matched_dict[count][1]][0]
             content = html_dict[matched_dict[count][1]][1]
-
             updateIndividualPage(course_id, headers, url, path, content) 
             count += 1
         print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
     except AssertionError:
-        #count = 0
+        count = 0
         print(len(html_dict), len(urls))
-        #for f in html_files
-        #for key, value in html_dict.items():
-        #    if
-        #    print(key, bcolors.WARNING + sorted_urls[count] + bcolors.ENDC)
-        #    count += 1
+        for key, value in html_dict.items():
+            print(key, bcolors.WARNING + urls[count] + bcolors.ENDC)
+            count += 1
 
 
 #Gets every page in a course and appends the page url to a list
