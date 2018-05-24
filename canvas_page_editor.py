@@ -94,7 +94,7 @@ def storeHtmlData(html_files):
             print(bcolors.WARNING + 'Make sure files follow the pattern: \'\\d+_([^/]+.html$)\'' + bcolors.ENDC)
             errors = True
         #sorts dictionary alphabetically by key
-        sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
+        sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[1]))
 
     # assert(errors == False)
     return sorted_dict
@@ -110,6 +110,20 @@ def getHtmlData(html_files):
                 html_data.append(contents) 
                 f.close()
     return html_data
+
+#Ensures that files are matched to urls
+def matchFilesToUrls(urls,html_dict):
+    matched_dict = {}
+    count = 0
+    for html_dict_key, values in html_dict.items():
+        mut_key = html_dict_key.replace('_','-')
+        m = re.search('^[^/.]+', mut_key)
+        for url in urls:
+            if m is not None:
+                if url == m.group(0):
+                    matched_dict[count] = url, html_dict_key
+                    count += 1
+    return matched_dict
 
 
 def updateCoursePages(top_directory):
@@ -135,23 +149,31 @@ def updateCoursePages(top_directory):
     urls = []
     for page_url in canvas_pages:
         urls.append(page_url)
-        
+
     #because Canvas sorts different than Python
-    sorted_urls = sorted(urls)
+    #sorted_urls = sorted(urls, key=lambda t: t[0])
+    matched_dict = matchFilesToUrls(urls, html_dict)
+
     try:
-        assert(len(sorted_urls) == len(html_dict))
+        assert(len(urls) == len(html_dict))
         count = 0
-        for key, values in html_dict.items():
-            updateIndividualPage(course_id, headers, sorted_urls[count] , values[0], values[1]) 
+        for key, values in matched_dict.items():
+            url = matched_dict[count][0]
+            path = html_dict[matched_dict[count][1]][0]
+            content = html_dict[matched_dict[count][1]][1]
+
+            updateIndividualPage(course_id, headers, url, path, content) 
             count += 1
         print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
     except AssertionError:
-        count = 0
-        print(len(html_dict), len(sorted_urls))
-        for key, value in html_dict.items():
-            print(key, bcolors.WARNING + sorted_urls[count] + bcolors.ENDC)
-            count += 1
-    
+        #count = 0
+        print(len(html_dict), len(urls))
+        #for f in html_files
+        #for key, value in html_dict.items():
+        #    if
+        #    print(key, bcolors.WARNING + sorted_urls[count] + bcolors.ENDC)
+        #    count += 1
+
 
 #Gets every page in a course and appends the page url to a list
 def getCoursePages(course_id, headers):
