@@ -114,6 +114,7 @@ def getHtmlData(html_files):
 #Ensures that files are matched to urls
 def matchFilesToUrls(urls,html_dict):
     matched_dict = {}
+    skipped = urls
     count = 0
     for html_dict_key, values in html_dict.items():
         mut_key = html_dict_key.replace('_','-')
@@ -122,8 +123,9 @@ def matchFilesToUrls(urls,html_dict):
             if m is not None:
                 if url == m.group(0):
                     matched_dict[count] = url, html_dict_key
+                    skipped.remove(url)
                     count += 1
-    return matched_dict
+    return matched_dict, skipped
 
 
 def updateCoursePages(top_directory):
@@ -152,25 +154,28 @@ def updateCoursePages(top_directory):
 
     #because Canvas sorts different than Python
     #sorted_urls = sorted(urls, key=lambda t: t[0])
-    matched_dict = matchFilesToUrls(urls, html_dict)
+    match = matchFilesToUrls(urls, html_dict)
+    matched_dict = match[0]
 
-    try:
-        assert(len(urls) == len(html_dict))
-        count = 0
-        for key, values in matched_dict.items():
-            url = matched_dict[count][0]
-            path = html_dict[matched_dict[count][1]][0]
-            content = html_dict[matched_dict[count][1]][1]
-            updateIndividualPage(course_id, headers, url, path, content) 
-            count += 1
-        print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
-    except AssertionError:
-        count = 0
-        print(len(html_dict), len(urls))
-        for key, value in html_dict.items():
-            print(key, bcolors.WARNING + urls[count] + bcolors.ENDC)
-            count += 1
-
+#    try:
+        #assert(len(urls) == len(html_dict))
+    count = 0
+    for key, values in matched_dict.items():
+        url = matched_dict[count][0]
+        path = html_dict[matched_dict[count][1]][0]
+        content = html_dict[matched_dict[count][1]][1]
+        updateIndividualPage(course_id, headers, url, path, content) 
+        count += 1
+    print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
+    print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(html_dict)) + bcolors.ENDC)
+    print(bcolors.FAIL + 'Pages skipped: {}'.format(match[1]) + bcolors.ENDC)
+#    except AssertionError:
+#        count = 0
+#        print(len(html_dict), len(urls))
+#        for key, value in html_dict.items():
+#            print(key, bcolors.WARNING + urls[count] + bcolors.ENDC)
+#            count += 1
+#
 
 #Gets every page in a course and appends the page url to a list
 def getCoursePages(course_id, headers):
