@@ -8,7 +8,7 @@ from auth import server, user, password
 
 def upload_css(course):
     try: 
-        session = ftplib.FTP('***REMOVED***', '***REMOVED***', '***REMOVED***')
+        session = ftplib.FTP(server, user, password)
         session.cwd('media/canvas/{}/css'.format(course))
         f = '/Users/cyee/Desktop/canvas/courses/{}/resources/styles/css/concat/concat.css'.format(course)
         local_file = copyfile(f, './concat.css')
@@ -22,7 +22,7 @@ def upload_css(course):
 
 def upload_js(course):
     try:
-        session = ftplib.FTP('***REMOVED***', '***REMOVED***', '***REMOVED***')
+        session = ftplib.FTP(server, user, password)
         session.cwd('media/canvas/{}/js'.format(course))
         f = '/Users/cyee/Desktop/canvas/courses/{}/resources/js/concat/concat.js'.format(course)
         local_file = copyfile(f, './concat.js')
@@ -36,7 +36,7 @@ def upload_js(course):
 
 def upload_html(course):
     try:
-        session = ftplib.FTP('***REMOVED***', '***REMOVED***', '***REMOVED***')
+        session = ftplib.FTP(server, user, password)
         session.cwd('media/canvas/{}/html'.format(course))
         html_folder = '/Users/cyee/Desktop/canvas/courses/{}/resources/html/*.html'.format(course)
         html_menus = glob(html_folder)
