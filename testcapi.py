@@ -70,7 +70,7 @@ if __name__  == '__main__':
     course_id = '141'
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
-    url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
+    url_base = 'https://bscs.instructure.com/api/v1/courses/'
     page_titles = ['5.1 Making Links', '5.2 Making Links Continued', '5.3 Focus Question', '5.4 What Do You Think', '5.5 Try This', '5.6 Temperatures Around the Globe', '5.5 MNSTeLLA Video Analysis Process', '5.8 Video Viewing Basics', '5.9 A Classroom Conversation', '5.10 Identify Elicit and Probe Questions', '5.11 Identify Elicit and Probe Continued', '5.12 Identify Missed Opportunities to Probe']
     directory = '/Users/cyee/Desktop/canvas/courses/mnstella/courses/01_pe/02_ms_course_1/05_segment_5'
     html_files = glob(directory + '{}'.format('/*.html'), recursive=False)
