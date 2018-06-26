@@ -4,6 +4,7 @@ import os
 from glob import glob
 import re
 from colors import bcolors
+from auth import server, user, password
 
 def upload_css(course):
     try: 

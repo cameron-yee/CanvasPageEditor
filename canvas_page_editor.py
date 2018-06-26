@@ -181,7 +181,7 @@ def updateCoursePages(top_directory):
 def getCoursePages(course_id, headers):
     # page = 1
     count = 0
-    pages = []
+    urls  = []
     isNext = True
     first = True
     url = url_base + course_id + '/pages?per_page=300&page=1&sort=title&order=asc'
@@ -193,13 +193,13 @@ def getCoursePages(course_id, headers):
             # print(r.links['current']['url'])
             data = r.json()
             for page in data:
-                pages.append(page['url'])
+                urls.append(page['url'])
             first = False
         while isNext:
             r = requests.get(r.links['next']['url'], headers=headers)
             data = r.json()
             for page in data:
-                pages.append(page['url'])
+                urls.append(page['url'])
             count += 1
             # print(r.links['next']['url'])
     except KeyError:
@@ -207,7 +207,18 @@ def getCoursePages(course_id, headers):
 
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(pages)
-    return pages
+    return urls
+
+#Function specifically for MNSTL One Time Use
+#def updatePageTitles(course_id, headers, pattern):
+#    urls = getCoursePages(course_id, headers)
+#    for url in urls:
+#        m = re.search(pattern, url)
+#        num = m.group(1)
+#        re.sub(pattern, '{num}.', url)
+#        print(page)
+#        break
+#
 
 
 #DEPRECATED
@@ -333,7 +344,6 @@ if __name__  == '__main__':
     # course_id = '122'
     url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
 
-    # '/Users/cameronyee/Desktop/canvas/courses/mhs/courses/te'
     if args.which == 'uc':
        updateCoursePages(args.top_directory)
     if args.which == 'ind':
