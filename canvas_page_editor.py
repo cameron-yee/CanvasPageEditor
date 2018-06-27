@@ -15,31 +15,28 @@ def selectAction():
     parser = argparse.ArgumentParser(description='Pick action.')
     subparsers = parser.add_subparsers(help='sub-command help')
 
-    #commands = {
-    #   'uc': updateCoursePages,
-    #   'ind': updateIndividualPage,
-    #}
-
-    parser.add_argument('cid', help="Enter course ID", default="", type=str)
-
+    #commands for updating entire course
     parser_uc = subparsers.add_parser('uc', help='Commands to use when updateCoursePages')
-    parser_uc.add_argument('top_directory', help="Enter the directory that contains the html files, or subfolders that contain the html files", type=str)
+    parser_uc.add_argument('top_directory', help='Enter the directory that contains the html files, or subfolders that contain the html files', type=str)
+    parser_uc.add_argument('cid', help='Enter course ID', default='', type=str)
     parser_uc.set_defaults(which='uc')
 
+    #commands for updating individual course page
     parser_ind = subparsers.add_parser('ind', help='Commands to use when updateIndividualPage')
-    parser_ind.add_argument('page_url', help="Enter the last section of the url that the page is on", type=str)
-    parser_ind.add_argument('file_path', help="Enter the path to file on your local device", type=str)
+    parser_ind.add_argument('page_url', help='Enter the last section of the url that the page is on', type=str)
+    parser_ind.add_argument('file_path', help='Enter the path to file on your local device', type=str)
+    parser_ind.add_argument('cid', help="Enter course ID", default="", type=str)
     parser_ind.set_defaults(which='ind')
 
+    #commands for updating media server
     parser_static = subparsers.add_parser('static', help='Commands to use when pushing static files to media server')
-#    parser_static.add_argument('--css', help="Update css file on media server", type=str)
-#    parser_static.add_argument('--js', help="Update js file on media server", type=str)
-#    parser_static.add_argument('--html', help="Update html menu on media server", type=str)
-    parser_static.add_argument('course_prefix', help="Enter the prefix of the course", type=str)
+    parser_static.add_argument('-c', '--css', action='count', help='Update css file on media server')
+    parser_static.add_argument('-j', '--js', action='count', help='Update js file on media server')
+    parser_static.add_argument('-ht', '--html', action='count', help='Update html menu on media server')
+    parser_static.add_argument('course_prefix', help='Enter the prefix of the course', type=str)
+    parser_static.add_argument('-sc', '--subcourse', action='store', help='Update css file on media server', type=str)
     parser_static.set_defaults(which='static')
     
-    #parser.add_argument('command', help="Choose which function to run", choices=commands.keys())
-
     args = parser.parse_args()
     return args
 
@@ -338,20 +335,31 @@ def createPagesAndAddContent(course_id, headers, page_titles, html_files):
 
 if __name__  == '__main__':
     args = selectAction()
-    course_id = args.cid
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
     # course_id = '122'
     url_base = 'https://bscs.instructure.com/api/v1/courses/'
 
     if args.which == 'uc':
+       course_id = args.cid
        updateCoursePages(args.top_directory)
     if args.which == 'ind':
+       course_id = args.cid
        updateIndividualPage(course_id, headers, args.page_url, args.file_path)
     if args.which == 'static':
         course = args.course_prefix
-        upload_all(course)
-        print('Updated {} static files'.format(course))
+        if args.css is not None:
+            upload_css(course, args.subcourse)
+            upload_css_sftp(course, args.subcourse)
+        if args.js is not None:
+            upload_js(course, args.subcourse)
+            upload_js_sftp(course, args.subcourse)
+        if args.html is not None:
+            upload_html(course, args.subcourse)
+            upload_html_sftp(course, args.subcourse)
+        if args.css is None and args.js is None and args.html is None:
+            upload_all(course, args.subcourse)
+            print('Updated {} static files'.format(course))
 
     #update_all(course)
 
