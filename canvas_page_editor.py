@@ -259,7 +259,7 @@ def updateIndividualPage(course_id, headers, page_url, file_path, html_content=N
 
 #Create a new course in Canvas
 def createNewCourse(course_name, headers):
-    url = 'https://***REMOVED***.instructure.com/api/v1/accounts/1/courses'
+    url = 'https://bscs.instructure.com/api/v1/accounts/1/courses'
     data = [('course[name]', course_name),]
     r = requests.post(url, headers=headers, data=data)
 
@@ -342,7 +342,7 @@ if __name__  == '__main__':
     access_token = getAccessToken()
     headers = {"Authorization": "Bearer " + access_token}
     # course_id = '122'
-    url_base = 'https://***REMOVED***.instructure.com/api/v1/courses/'
+    url_base = 'https://bscs.instructure.com/api/v1/courses/'
 
     if args.which == 'uc':
        updateCoursePages(args.top_directory)
