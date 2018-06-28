@@ -18,6 +18,8 @@ def upload_css_sftp(course, sub_course=None):
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
+            sub_course_local = ''
+            sub_course_remote = ''
 
         local_css_path = '{lb}/{c}/{scl}resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
         remote_css_path = '{rb}/{c}{scr}/css/concat.css'.format(rb=remote_base, c=course, scr=sub_course_remote)
@@ -44,6 +46,8 @@ def upload_js_sftp(course, sub_course=None):
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
+            sub_course_local = ''
+            sub_course_remote = ''
 
         local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
         remote_js_path = '{rb}/{c}{scr}/js/concat.js'.format(rb=remote_base, c=course, scr=sub_course_remote)
@@ -70,6 +74,8 @@ def upload_html_sftp(course, sub_course=None):
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
+            sub_course_local = ''
+            sub_course_remote = ''
 
         html_folder = '{lb}/{c}/{scl}resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
         html_menus = glob(html_folder)
@@ -102,6 +108,8 @@ def upload_css(course, sub_course=None):
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
+            sub_course_local = ''
+            sub_course_remote = ''
 
         session = ftplib.FTP(server, user, password)
         session.cwd('{rb}/{c}{scr}/css'.format(rb=remote_base, c=course, scr=sub_course_remote))
@@ -122,6 +130,8 @@ def upload_js(course, sub_course=None):
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
+            sub_course_local = ''
+            sub_course_remote = ''
 
         session = ftplib.FTP(server, user, password)
         session.cwd('{rb}/{c}{scr}/js'.format(rb=remote_base, c=course, scr=sub_course_remote))
@@ -142,6 +152,8 @@ def upload_html(course, sub_course=None):
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
+            sub_course_local = ''
+            sub_course_remote = ''
 
         session = ftplib.FTP(server, user, password)
         session.cwd('{rb}/{c}{scr}/html'.format(rb=remote_base, c=course, scr=sub_course_remote))
