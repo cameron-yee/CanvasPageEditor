@@ -53,8 +53,11 @@ def getHtmlFolders(top_directory):
     final_directories = []
     raw_directories = [x for x in os.walk(top_directory)]
     processed_directories = raw_directories[0][1]
+
     for directory in processed_directories:
           final_directories.append('{}/{}'.format(top_directory, directory)) 
+    
+    final_directories.append(top_directory) #Allows for floating html files in top dir
     return final_directories
 
 #Returns a list of all html file paths in a given folder
@@ -90,7 +93,7 @@ def storeHtmlData(html_files):
             print(bcolors.FAIL + 'Unacceptable file names found.  Fix the following files: {}'.format(unset) + bcolors.ENDC)
             print(bcolors.WARNING + 'Make sure files follow the pattern: \'\\d+_([^/]+.html$)\'' + bcolors.ENDC)
             errors = True
-        #sorts dictionary alphabetically by key
+        #sorts dictionary alphabetically by key with lambda function for sort
         sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[1]))
 
     # assert(errors == False)
@@ -108,7 +111,7 @@ def getHtmlData(html_files):
                 f.close()
     return html_data
 
-#Ensures that files are matched to urls
+#Ensures that files are matched to urls, fails if file name is not a url in course
 def matchFilesToUrls(urls,html_dict):
     matched_dict = {}
     skipped = urls
