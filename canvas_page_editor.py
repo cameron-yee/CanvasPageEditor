@@ -94,12 +94,7 @@ def storeHtmlData(html_files):
         elif html_data[i][1] is not None:
             key = (html_data[i][1]).replace('-','_') #This is reversed in mathFilesToUrls, so possibly uneccessary. Possibly needed for sort function? 
             html_dict[key] = html_files[i], html_data[i][0], html_data[i][1]
-        else:
-            pass #All the below is deprecated because file naming convention no longer matters
-            #unset.append(html_files[i])
-            #print(bcolors.FAIL + 'Unacceptable file names found.  Fix the following files: {}'.format(unset) + bcolors.ENDC)
-            #print(bcolors.WARNING + 'Make sure files follow the pattern: \'\\d+_([^/]+.html$)\'' + bcolors.ENDC)
-            #errors = True
+
         #sorts dictionary alphabetically by key with lambda function for sort
         sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[1]))
 
@@ -116,9 +111,9 @@ def getHtmlData(html_files):
         if html_file is not None:
             with open(html_file, 'r') as f:
                 contents = f.read()
-                m = re.search('<span url="([\S\s]+)"></span>', contents)
-                url = m.group(1) if m is not None else None
-                html_data.append((contents, url)) #appends Type: tuple
+                m = re.search('<span url="([^\n]+)"></span>', contents)
+                local_url_var = m.group(1) if m is not None else None
+                html_data.append((contents, local_url_var)) #appends Type: tuple
                 f.close()
 
     return html_data
@@ -137,10 +132,10 @@ def matchFilesToUrls(urls,html_dict):
                     matched_dict[count] = url, html_dict_key
                     skipped.remove(url)
                     count += 1
-            elif values[2] == url:                          #If url variable in page is the same as Canvas page url
-                matched_dict[count] = url, html_dict_key
-                skipped.remove(url)
-                count += 1 
+            #elif values[2] == url:                          #If url variable in page is the same as Canvas page url
+            #    matched_dict[count] = url, html_dict_key
+            #    skipped.remove(url)
+            #    count += 1 
 
     return matched_dict, skipped
 
@@ -172,7 +167,6 @@ def updateCoursePages(top_directory):
     #because Canvas sorts different than Python
     #sorted_urls = sorted(urls, key=lambda t: t[0])
     match = matchFilesToUrls(urls, html_dict)
-    #print(match)
     matched_dict = match[0]
 
 #    try:
