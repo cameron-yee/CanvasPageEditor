@@ -10,6 +10,9 @@ from collections import OrderedDict
 from colors import bcolors
 from media_server_update import *
 
+#TODO: Add variable types to improve readability using typing.py lib
+#import typing
+
 #CLI command definitions
 def selectAction():
     parser = argparse.ArgumentParser(description='Pick action.')
@@ -76,7 +79,7 @@ def globHtml(directory):
 
 #Returns a dictionary of all course pages sorted alphabetically with html file path and html content as values
 def storeHtmlData(html_files):
-    html_data = getHtmlData(html_files)
+    html_data = getHtmlData(html_files) #Type List: [(html_content, file_url_variable)]
     html_dict = {}
     sorted_dict = {}
     unset = []
@@ -87,44 +90,58 @@ def storeHtmlData(html_files):
         #sets the file 'url' without the 00_ as the key
         #stores both the full html file and the html data from the file
         if key:
-            html_dict[str(key.group(1))] = html_files[i], html_data[i]
+            html_dict[str(key.group(1))] = html_files[i], html_data[i][0], html_data[i][1] #key = file path, html content, file url string variable
+        elif html_data[i][1] is not None:
+            key = (html_data[i][1]).replace('-','_') #This is reversed in mathFilesToUrls, so possibly uneccessary. Possibly needed for sort function? 
+            html_dict[key] = html_files[i], html_data[i][0], html_data[i][1]
         else:
-            unset.append(html_files[i])
-            print(bcolors.FAIL + 'Unacceptable file names found.  Fix the following files: {}'.format(unset) + bcolors.ENDC)
-            print(bcolors.WARNING + 'Make sure files follow the pattern: \'\\d+_([^/]+.html$)\'' + bcolors.ENDC)
-            errors = True
+            pass #All the below is deprecated because file naming convention no longer matters
+            #unset.append(html_files[i])
+            #print(bcolors.FAIL + 'Unacceptable file names found.  Fix the following files: {}'.format(unset) + bcolors.ENDC)
+            #print(bcolors.WARNING + 'Make sure files follow the pattern: \'\\d+_([^/]+.html$)\'' + bcolors.ENDC)
+            #errors = True
         #sorts dictionary alphabetically by key with lambda function for sort
         sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[1]))
 
     # assert(errors == False)
-    return sorted_dict
+    return sorted_dict #TYPE: key: file path, html content
 
 
 #Gets html body content for each page in course
+#List will be in the correct index order as html_files because both are lists and html_data is being appended in the same order as html_files
+#TODO: I don't like that both html_files and html_data are lists.  It seems inefficient.  Combine into one Dict?
 def getHtmlData(html_files):
     html_data = []
     for html_file in html_files:
         if html_file is not None:
             with open(html_file, 'r') as f:
                 contents = f.read()
-                html_data.append(contents) 
+                m = re.search('<span url="([\S\s]+)"></span>', contents)
+                url = m.group(1) if m is not None else None
+                html_data.append((contents, url)) #appends Type: tuple
                 f.close()
+
     return html_data
 
 #Ensures that files are matched to urls, fails if file name is not a url in course
 def matchFilesToUrls(urls,html_dict):
     matched_dict = {}
-    skipped = urls
+    skipped = urls #type: Array
     count = 0
     for html_dict_key, values in html_dict.items():
         mut_key = html_dict_key.replace('_','-')
-        m = re.search('^[^/.]+', mut_key)
+        m = re.search('^[^/.]+', mut_key) #Is this regex necessary? if url = mut_key?
         for url in urls:
             if m is not None:
                 if url == m.group(0):
                     matched_dict[count] = url, html_dict_key
                     skipped.remove(url)
                     count += 1
+            elif values[2] == url:                          #If url variable in page is the same as Canvas page url
+                matched_dict[count] = url, html_dict_key
+                skipped.remove(url)
+                count += 1 
+
     return matched_dict, skipped
 
 
@@ -133,10 +150,10 @@ def updateCoursePages(top_directory):
     info_lists = []
     directories = getHtmlFolders(top_directory)
 
-    #Glob html will work different if there are no sub folders
+    #Glob html will work different if html files are not stored in sub folders
     if not directories:
         html_files = globHtml(top_directory)
-        html_dict = storeHtmlData(html_files[0])
+        html_dict = storeHtmlData(html_files[0]) #globHtml returns list of lists with one list
     else:
         for i in range(len(directories)):
             html_info = globHtml(directories[i])
@@ -148,13 +165,14 @@ def updateCoursePages(top_directory):
         html_dict = storeHtmlData(html_files)
 
     canvas_pages = getCoursePages(course_id, headers)
-    urls = []
+    urls = [] #List of all urls of canvas pages in given course
     for page_url in canvas_pages:
         urls.append(page_url)
 
     #because Canvas sorts different than Python
     #sorted_urls = sorted(urls, key=lambda t: t[0])
     match = matchFilesToUrls(urls, html_dict)
+    #print(match)
     matched_dict = match[0]
 
 #    try:
@@ -167,7 +185,7 @@ def updateCoursePages(top_directory):
         updateIndividualPage(course_id, headers, url, path, content) 
         count += 1
     print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
-    print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(html_dict)) + bcolors.ENDC)
+    print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(canvas_pages)) + bcolors.ENDC)
     print(bcolors.FAIL + 'Pages skipped: {}'.format(match[1]) + bcolors.ENDC)
 #    except AssertionError:
 #        count = 0
@@ -175,7 +193,7 @@ def updateCoursePages(top_directory):
 #        for key, value in html_dict.items():
 #            print(key, bcolors.WARNING + urls[count] + bcolors.ENDC)
 #            count += 1
-#
+
 
 #Gets every page in a course and appends the page url to a list
 def getCoursePages(course_id, headers):
@@ -244,17 +262,17 @@ def getPageInformation(course_id, page_url, headers):
 
 #Updates html body content for given Canvas page and html file, for updating entire course
 def updateIndividualPage(course_id, headers, page_url, file_path, html_content=None):
+    url = url_base + course_id + '/pages/' + page_url
     if html_content is not None:
-        url = url_base + course_id + '/pages/' + page_url
         data = [('wiki_page[body]', html_content),]
         r = requests.put(url, headers=headers, data=data)
         print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC)
     else:
-        url = url_base + course_id + '/pages/' + page_url
         with open(file_path, 'r') as f:
             html = f.read()
         data = [('wiki_page[body]', html),]
         r = requests.put(url, headers=headers, data=data)
+        f.close()
 
 
 #Create a new course in Canvas
