@@ -23,14 +23,14 @@ def upload_css_sftp(course, sub_course=None):
         port = 22
 
         if sub_course is not None:
-            sub_course_local = 'courses/{}'.format(sub_course)
+            sub_course_local = 'courses/{}/'.format(sub_course)
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
             sub_course_local = ''
             sub_course_remote = ''
 
-        local_css_path = '{lb}/{c}/{scl}/resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
+        local_css_path = '{lb}/{c}/{scl}resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
         remote_css_path = '{rb}/{c}{scr}/css/concat.css'.format(rb=remote_base, c=course, scr=sub_course_remote)
 
         transport = paramiko.Transport((server, port))
@@ -51,14 +51,14 @@ def upload_js_sftp(course, sub_course=None):
         port = 22
 
         if sub_course is not None:
-            sub_course_local = 'courses/{}'.format(sub_course)
+            sub_course_local = 'courses/{}/'.format(sub_course)
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
             sub_course_local = ''
             sub_course_remote = ''
 
-        local_js_path = '{lb}/{c}/{scl}/resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
+        local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
         remote_js_path = '{rb}/{c}{scr}/js/concat.js'.format(rb=remote_base, c=course, scr=sub_course_remote)
 
         transport = paramiko.Transport((server, port))
@@ -79,14 +79,14 @@ def upload_html_sftp(course, sub_course=None):
         port = 22
 
         if sub_course is not None:
-            sub_course_local = 'courses/{}'.format(sub_course)
+            sub_course_local = 'courses/{}/'.format(sub_course)
             sub_course_remote = '/{}'.format(sub_course)
         else:
             sub_course = ''
             sub_course_local = ''
             sub_course_remote = ''
 
-        html_folder = '{lb}/{c}/{scl}/resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
+        html_folder = '{lb}/{c}/{scl}resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
         html_menus = glob(html_folder)
 
         transport = paramiko.Transport((server, port))
@@ -112,13 +112,13 @@ def upload_html_sftp(course, sub_course=None):
 def upload_html_aws(course, sub_course=None):
     try:
         if sub_course is not None:
-            sub_course_local = 'courses/{}'.format(sub_course)
+            sub_course_local = 'courses/{}/'.format(sub_course)
         else:
             sub_course = ''
             sub_course_local = ''
 
         s3 = boto3.resource('s3')
-        html_folder = '{lb}/{c}/{scl}/resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
+        html_folder = '{lb}/{c}/{scl}resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
         html_menus = glob(html_folder)
 
         for menu in html_menus:
@@ -136,13 +136,13 @@ def upload_html_aws(course, sub_course=None):
 def upload_js_aws(course, sub_course=None):
     try:
         if sub_course is not None:
-            sub_course_local = 'courses/{}'.format(sub_course)
+            sub_course_local = 'courses/{}/'.format(sub_course)
         else:
             sub_course = ''
             sub_course_local = ''
 
 
-        local_js_path = '{lb}/{c}/{scl}/resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
+        local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
         data = open(local_js_path, 'rb')
 
         s3 = boto3.resource('s3')
@@ -157,13 +157,13 @@ def upload_js_aws(course, sub_course=None):
 def upload_js_aws(course, sub_course=None):
     try:
         if sub_course is not None:
-            sub_course_local = 'courses/{}'.format(sub_course)
+            sub_course_local = 'courses/{}/'.format(sub_course)
         else:
             sub_course = ''
             sub_course_local = ''
 
 
-        local_js_path = '{lb}/{c}/{scl}/resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
+        local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
         data = open(local_js_path, 'rb')
 
         s3 = boto3.resource('s3')
@@ -178,13 +178,13 @@ def upload_js_aws(course, sub_course=None):
 def upload_css_aws(course, sub_course=None):
     try:
         if sub_course is not None:
-            sub_course_local = 'courses/{}'.format(sub_course)
+            sub_course_local = 'courses/{}/'.format(sub_course)
         else:
             sub_course = ''
             sub_course_local = ''
 
 
-        local_css_path = '{lb}/{c}/{scl}/resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
+        local_css_path = '{lb}/{c}/{scl}resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
         data = open(local_css_path, 'rb')
 
         s3 = boto3.resource('s3')
@@ -196,7 +196,11 @@ def upload_css_aws(course, sub_course=None):
         raise
 
 
-def upload_img_aws(img_path, course, sub_course, folder):
+def upload_img_aws(img_path, course, folder, sub_course=None):
+    image_name = os.path.basename(img_path)
+    key = '/{c}/{sc}/{f}/{i}'.format(c=course,sc=sub_course,f=folder,i=image_name) if sub_course is not None else '/{c}/{f}/{i}'.format(c=course,f=folder,i=image_name)
+    print(key)
+
     #tinify.key = tinify_api_key
     #unoptimized_img = tinify.from_file(img_path)
     #unoptimized_img.to_file('/Users/cyee/Downloads/astro_opt.jpg')
@@ -207,9 +211,11 @@ def upload_img_aws(img_path, course, sub_course, folder):
     #        print(key.key)
 
     data = open(img_path, 'rb')
-    s3.Bucket('media-bscs-org').put_object(Key='/{course}/{subcourse}/{folder}/astronaut.jpg', Body=data)
+    #s3.Bucket('media-bscs-org').put_object(Key='astronaut.jpg', Body=data)
+    s3.Bucket('media-bscs-org').put_object(Key=key, Body=data)
 
     data.close()
+    print(bcolors.WARNING + 'IMG uploaded to AWS' + bcolors.ENDC)
 
 
 def upload_all(course, sub_course=None):
@@ -232,8 +238,8 @@ if __name__ == '__main__':
     #upload_all('3dmss', 'pd')
     #refresh_chrome()
     #command_input()
-    #upload_img_aws('/Users/cyee/Downloads/astronaut.jpg','3dmss','se','images')
-    upload_css_aws('3dmss', 'se')
+    upload_img_aws('/Users/cyee/Downloads/astronaut.jpg','3dmss','images','se')
+    #upload_css_aws('3dmss', 'se')
 
 
 
@@ -268,7 +274,7 @@ if __name__ == '__main__':
 #def upload_css(course, sub_course=None):
 #    try: 
 #        if sub_course is not None:
-#            sub_course_local = 'courses/{}'.format(sub_course)
+#            sub_course_local = 'courses/{}/'.format(sub_course)
 #            sub_course_remote = '/{}'.format(sub_course)
 #        else:
 #            sub_course = ''
@@ -277,7 +283,7 @@ if __name__ == '__main__':
 #
 #        session = ftplib.FTP(server, user, password)
 #        session.cwd('{rb}/{c}{scr}/css'.format(rb=remote_base, c=course, scr=sub_course_remote))
-#        f = '{lb}/{c}/{scl}/resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
+#        f = '{lb}/{c}/{scl}resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
 #        local_file = copyfile(f, './concat.css')
 #        session.storbinary('STOR {}'.format(local_file), open(local_file,'rb'))
 #        os.remove('./concat.css')
@@ -290,7 +296,7 @@ if __name__ == '__main__':
 #def upload_js(course, sub_course=None):
 #    try:
 #        if sub_course is not None:
-#            sub_course_local = 'courses/{}'.format(sub_course)
+#            sub_course_local = 'courses/{}/'.format(sub_course)
 #            sub_course_remote = '/{}'.format(sub_course)
 #        else:
 #            sub_course = ''
@@ -299,7 +305,7 @@ if __name__ == '__main__':
 #
 #        session = ftplib.FTP(server, user, password)
 #        session.cwd('{rb}/{c}{scr}/js'.format(rb=remote_base, c=course, scr=sub_course_remote))
-#        f = '{lb}/{c}/{scl}/resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
+#        f = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
 #        local_file = copyfile(f, './concat.js')
 #        session.storbinary('STOR {}'.format(local_file), open(local_file,'rb'))
 #        os.remove('./concat.js')
@@ -312,7 +318,7 @@ if __name__ == '__main__':
 #def upload_html(course, sub_course=None):
 #    try:
 #        if sub_course is not None:
-#            sub_course_local = 'courses/{}'.format(sub_course)
+#            sub_course_local = 'courses/{}/'.format(sub_course)
 #            sub_course_remote = '/{}'.format(sub_course)
 #        else:
 #            sub_course = ''
@@ -322,7 +328,7 @@ if __name__ == '__main__':
 #        session = ftplib.FTP(server, user, password)
 #        session.cwd('{rb}/{c}{scr}/html'.format(rb=remote_base, c=course, scr=sub_course_remote))
 #
-#        html_folder = '{lb}/{c}/{scl}/resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
+#        html_folder = '{lb}/{c}/{scl}resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
 #        html_menus = glob(html_folder)
 #
 #        for menu in html_menus:

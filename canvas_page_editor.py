@@ -36,8 +36,10 @@ def selectAction():
     parser_static.add_argument('-c', '--css', action='count', help='Update css file on media server')
     parser_static.add_argument('-j', '--js', action='count', help='Update js file on media server')
     parser_static.add_argument('-ht', '--html', action='count', help='Update html menu on media server')
+    parser_static.add_argument('-i','--img', action='store', help='Local image path to upload', type=str)
     parser_static.add_argument('course_prefix', help='Enter the prefix of the course', type=str)
     parser_static.add_argument('-sc', '--subcourse', action='store', help='Update css file on media server', type=str)
+    parser_static.add_argument('-f','--folder', action='store', help='Folder to upload img to in AWS', type=str)
     parser_static.set_defaults(which='static')
     
     args = parser.parse_args()
@@ -364,15 +366,17 @@ if __name__  == '__main__':
     if args.which == 'static':
         course = args.course_prefix
         if args.css is not None:
-            upload_css(course, args.subcourse)
+            upload_css_aws(course, args.subcourse)
             upload_css_sftp(course, args.subcourse)
         if args.js is not None:
-            upload_js(course, args.subcourse)
+            upload_js_aws(course, args.subcourse)
             upload_js_sftp(course, args.subcourse)
         if args.html is not None:
-            upload_html(course, args.subcourse)
+            upload_html_aws(course, args.subcourse)
             upload_html_sftp(course, args.subcourse)
-        if args.css is None and args.js is None and args.html is None:
+        if args.img is not None:
+            upload_img_aws(args.img, course, args.folder, args.subcourse)
+        if args.css is None and args.js is None and args.html is None and args.img is None:
             upload_all(course, args.subcourse)
             print('Updated {} static files'.format(course))
 
