@@ -26,7 +26,7 @@ def selectAction():
 
     #commands for updating individual course page
     parser_ind = subparsers.add_parser('ind', help='Commands to use when updateIndividualPage')
-    parser_ind.add_argument('page_url', help='Enter the last section of the url that the page is on', type=str)
+    parser_ind.add_argument('-url','--page_url', action='store', help='Enter the last section of the url that the page is on', type=str)
     parser_ind.add_argument('file_path', help='Enter the path to file on your local device', type=str)
     parser_ind.add_argument('cid', help="Enter course ID", default="", type=str)
     parser_ind.set_defaults(which='ind')
@@ -257,18 +257,37 @@ def getPageInformation(course_id, page_url, headers):
 
 
 #Updates html body content for given Canvas page and html file, for updating entire course
-def updateIndividualPage(course_id, headers, page_url, file_path, html_content=None):
-    url = url_base + course_id + '/pages/' + page_url
-    if html_content is not None:
-        data = [('wiki_page[body]', html_content),]
-        r = requests.put(url, headers=headers, data=data)
-        print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC)
-    else:
+def updateIndividualPage(course_id, headers, file_path, page_url=None, html_content=None):
+    #Gets url from span in page if exists
+    def getUrlVar():
         with open(file_path, 'r') as f:
-            html = f.read()
-        data = [('wiki_page[body]', html),]
-        r = requests.put(url, headers=headers, data=data)
-        f.close()
+            contents = f.read()
+            m = re.search('<span url="([^\n]+)"></span>', contents)
+            if m is not None:
+                page_url = m.group(1)
+                return page_url
+            else:
+                return None
+
+    def update(page_url):
+        url = url_base + course_id + '/pages/' + page_url
+        if html_content is not None:
+            data = [('wiki_page[body]', html_content),]
+            r = requests.put(url, headers=headers, data=data)
+            print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC)
+        else:
+            with open(file_path, 'r') as f:
+                html = f.read()
+            data = [('wiki_page[body]', html),]
+            r = requests.put(url, headers=headers, data=data)
+            f.close()
+
+    #updates using url in file if no url is specified in CLI command
+    if page_url is None:
+        page_url = getUrlVar()
+        update(page_url=page_url) if page_url is not None else print('No URL variable provided in file')
+    else:
+        update(page_url)
 
 
 #Create a new course in Canvas
@@ -362,7 +381,10 @@ if __name__  == '__main__':
        updateCoursePages(args.top_directory)
     if args.which == 'ind':
        course_id = args.cid
-       updateIndividualPage(course_id, headers, args.page_url, args.file_path)
+       if args.page_url is not None:
+           updateIndividualPage(course_id, headers, args.file_path, args.page_url)
+       else:
+           updateIndividualPage(course_id, headers, args.file_path)
     if args.which == 'static':
         course = args.course_prefix
         if args.css is not None:

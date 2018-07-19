@@ -198,7 +198,7 @@ def upload_css_aws(course, sub_course=None):
 
 def upload_img_aws(img_path, course, folder, sub_course=None):
     image_name = os.path.basename(img_path)
-    key = '/{c}/{sc}/{f}/{i}'.format(c=course,sc=sub_course,f=folder,i=image_name) if sub_course is not None else '/{c}/{f}/{i}'.format(c=course,f=folder,i=image_name)
+    key = '{c}/{sc}/{f}/{i}'.format(c=course,sc=sub_course,f=folder,i=image_name) if sub_course is not None else '{c}/{f}/{i}'.format(c=course,f=folder,i=image_name)
     print(key)
 
     #tinify.key = tinify_api_key
@@ -211,7 +211,7 @@ def upload_img_aws(img_path, course, folder, sub_course=None):
     #        print(key.key)
 
     data = open(img_path, 'rb')
-    #s3.Bucket('media-bscs-org').put_object(Key='astronaut.jpg', Body=data)
+    s3.Bucket('media-bscs-org').put_object(Key='astronaut.jpg', Body=data)
     s3.Bucket('media-bscs-org').put_object(Key=key, Body=data)
 
     data.close()
