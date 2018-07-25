@@ -69,6 +69,7 @@ def getHtmlFolders(top_directory):
 def globHtml(directory):
     html_files = []
     html_files.append(glob(directory + '{}'.format('/**/*.html'), recursive=True))
+    print(html_files)
     return html_files
 
     # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
@@ -80,7 +81,7 @@ def globHtml(directory):
 
 
 #Returns a dictionary of all course pages sorted alphabetically with html file path and html content as values
-def storeHtmlData(html_files):
+def storeHtmlData(html_files, urls):
     html_data = getHtmlData(html_files) #Type List: [(html_content, file_url_variable)]
     html_dict = {}
     sorted_dict = {}
@@ -91,11 +92,15 @@ def storeHtmlData(html_files):
         key = re.search('\d+_([^/]+.html$)', html_files[i])
         #sets the file 'url' without the 00_ as the key
         #stores both the full html file and the html data from the file
-        if key:
-            html_dict[str(key.group(1))] = html_files[i], html_data[i][0], html_data[i][1] #key = file path, html content, file url string variable
+        #key must be a valid url
+        #TODO: 1st conditional supports our naming convention, but may be better to see if file name contains url anywhere in file name
+        if key in urls:
+            html_dict[str(key.group(1)).replace('_','-')] = html_files[i], html_data[i][0], html_data[i][1] #key = file path, html content, file url string variable
         elif html_data[i][1] is not None:
-            key = (html_data[i][1]).replace('-','_') #This is reversed in mathFilesToUrls, so possibly uneccessary. Possibly needed for sort function? 
+            key = (html_data[i][1])
             html_dict[key] = html_files[i], html_data[i][0], html_data[i][1]
+        else:
+            print(bcolors.FAIL + 'URL is not in file name and no URL is provided in file for {}'.format(html_files[i]) + bcolors.ENDC)
 
         #sorts dictionary alphabetically by key with lambda function for sort
         sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[1]))
@@ -120,6 +125,7 @@ def getHtmlData(html_files):
 
     return html_data
 
+
 #Ensures that files are matched to urls, fails if file name is not a url in course
 def matchFilesToUrls(urls,html_dict):
     matched_dict = {}
@@ -134,61 +140,12 @@ def matchFilesToUrls(urls,html_dict):
                     matched_dict[count] = url, html_dict_key
                     skipped.remove(url)
                     count += 1
-            #elif values[2] == url:                          #If url variable in page is the same as Canvas page url
-            #    matched_dict[count] = url, html_dict_key
-            #    skipped.remove(url)
-            #    count += 1 
+            elif values[2] == url:                          #If url variable in page is the same as Canvas page url
+                matched_dict[count] = url, html_dict_key
+                skipped.remove(url)
+                count += 1 
 
     return matched_dict, skipped
-
-
-def updateCoursePages(top_directory):
-    html_files = []
-    info_lists = []
-    directories = getHtmlFolders(top_directory)
-
-    #Glob html will work different if html files are not stored in sub folders
-    if not directories:
-        html_files = globHtml(top_directory)
-        html_dict = storeHtmlData(html_files[0]) #globHtml returns list of lists with one list
-    else:
-        for i in range(len(directories)):
-            html_info = globHtml(directories[i])
-            info_lists.append(html_info[0])
-        list_of_files = [x for x in info_lists if x != []]
-        for ls in list_of_files:
-            for f in ls:
-                html_files.append(f)
-        html_dict = storeHtmlData(html_files)
-
-    canvas_pages = getCoursePages(course_id, headers)
-    urls = [] #List of all urls of canvas pages in given course
-    for page_url in canvas_pages:
-        urls.append(page_url)
-
-    #because Canvas sorts different than Python
-    #sorted_urls = sorted(urls, key=lambda t: t[0])
-    match = matchFilesToUrls(urls, html_dict)
-    matched_dict = match[0]
-
-#    try:
-        #assert(len(urls) == len(html_dict))
-    count = 0
-    for key, values in matched_dict.items():
-        url = matched_dict[count][0]
-        path = html_dict[matched_dict[count][1]][0]
-        content = html_dict[matched_dict[count][1]][1]
-        updateIndividualPage(course_id, headers, url, path, content) 
-        count += 1
-    print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
-    print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(canvas_pages)) + bcolors.ENDC)
-    print(bcolors.FAIL + 'Pages skipped: {}'.format(match[1]) + bcolors.ENDC)
-#    except AssertionError:
-#        count = 0
-#        print(len(html_dict), len(urls))
-#        for key, value in html_dict.items():
-#            print(key, bcolors.WARNING + urls[count] + bcolors.ENDC)
-#            count += 1
 
 
 #Gets every page in a course and appends the page url to a list
@@ -222,6 +179,56 @@ def getCoursePages(course_id, headers):
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(pages)
     return urls
+
+
+def updateCoursePages(top_directory):
+    html_files = []
+    info_lists = []
+    directories = getHtmlFolders(top_directory)
+
+    canvas_pages = getCoursePages(course_id, headers)
+    urls = [] #List of all urls of canvas pages in given course
+    for page_url in canvas_pages:
+        urls.append(page_url)
+
+    #Glob html will work different if html files are not stored in sub folders
+    if not directories:
+        html_files = globHtml(top_directory)
+        html_dict = storeHtmlData(html_files[0], urls) #globHtml returns list of lists with one list
+    else:
+        for i in range(len(directories)):
+            html_info = globHtml(directories[i])
+            info_lists.append(html_info[0])
+        list_of_files = [x for x in info_lists if x != []]
+        for ls in list_of_files:
+            for f in ls:
+                html_files.append(f)
+        html_dict = storeHtmlData(html_files, urls)
+
+    #because Canvas sorts different than Python
+    #sorted_urls = sorted(urls, key=lambda t: t[0])
+    match = matchFilesToUrls(urls, html_dict)
+    matched_dict = match[0]
+
+#    try:
+        #assert(len(urls) == len(html_dict))
+    count = 0
+    for key, values in matched_dict.items():
+        url = matched_dict[count][0]
+        path = html_dict[matched_dict[count][1]][0]
+        content = html_dict[matched_dict[count][1]][1]
+        updateIndividualPage(course_id, headers, url, path, content) 
+        count += 1
+    print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
+    print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(canvas_pages)) + bcolors.ENDC)
+    print(bcolors.FAIL + 'Pages skipped: {}'.format(match[1]) + bcolors.ENDC)
+#    except AssertionError:
+#        count = 0
+#        print(len(html_dict), len(urls))
+#        for key, value in html_dict.items():
+#            print(key, bcolors.WARNING + urls[count] + bcolors.ENDC)
+#            count += 1
+
 
 #Function specifically for MNSTL One Time Use
 #def updatePageTitles(course_id, headers, pattern):
