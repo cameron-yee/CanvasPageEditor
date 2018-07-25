@@ -69,7 +69,6 @@ def getHtmlFolders(top_directory):
 def globHtml(directory):
     html_files = []
     html_files.append(glob(directory + '{}'.format('/**/*.html'), recursive=True))
-    print(html_files)
     return html_files
 
     # sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[0]))
@@ -78,6 +77,23 @@ def globHtml(directory):
 
     # print(sorted_dict)
     # return all_files
+
+
+#Gets html body content for each page in course
+#List will be in the correct index order as html_files because both are lists and html_data is being appended in the same order as html_files
+#TODO: I don't like that both html_files and html_data are lists.  It seems inefficient.  Combine into one Dict?
+def getHtmlData(html_files):
+    html_data = []
+    for html_file in html_files:
+        if html_file is not None:
+            with open(html_file, 'r') as f:
+                contents = f.read()
+                m = re.search('<span url="([^\n]+)"></span>', contents)
+                local_url_var = m.group(1) if m is not None else None
+                html_data.append((contents, local_url_var)) #appends Type: tuple
+                f.close()
+
+    return html_data
 
 
 #Returns a dictionary of all course pages sorted alphabetically with html file path and html content as values
@@ -107,23 +123,6 @@ def storeHtmlData(html_files, urls):
 
     # assert(errors == False)
     return sorted_dict #TYPE: key: file path, html content
-
-
-#Gets html body content for each page in course
-#List will be in the correct index order as html_files because both are lists and html_data is being appended in the same order as html_files
-#TODO: I don't like that both html_files and html_data are lists.  It seems inefficient.  Combine into one Dict?
-def getHtmlData(html_files):
-    html_data = []
-    for html_file in html_files:
-        if html_file is not None:
-            with open(html_file, 'r') as f:
-                contents = f.read()
-                m = re.search('<span url="([^\n]+)"></span>', contents)
-                local_url_var = m.group(1) if m is not None else None
-                html_data.append((contents, local_url_var)) #appends Type: tuple
-                f.close()
-
-    return html_data
 
 
 #Ensures that files are matched to urls, fails if file name is not a url in course
@@ -176,8 +175,8 @@ def getCoursePages(course_id, headers):
     except KeyError:
         isNext = False
 
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(pages)
+    #pp = pprint.PrettyPrinter(indent=4)
+    #pp.pprint(pages)
     return urls
 
 
@@ -217,7 +216,7 @@ def updateCoursePages(top_directory):
         url = matched_dict[count][0]
         path = html_dict[matched_dict[count][1]][0]
         content = html_dict[matched_dict[count][1]][1]
-        updateIndividualPage(course_id, headers, url, path, content) 
+        updateIndividualPage(course_id, headers, path, url, content) 
         count += 1
     print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
     print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(canvas_pages)) + bcolors.ENDC)
@@ -281,7 +280,7 @@ def updateIndividualPage(course_id, headers, file_path, page_url=None, html_cont
         if html_content is not None:
             data = [('wiki_page[body]', html_content),]
             r = requests.put(url, headers=headers, data=data)
-            print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC)
+            print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC) if r.status_code == 200 else print(bcolors.FAIL + 'Request Error: {}\nPage: {}'.format(r.status_code,page_url) + bcolors.ENDC)
         else:
             with open(file_path, 'r') as f:
                 html = f.read()
