@@ -82,69 +82,69 @@ def globHtml(directory):
 #Gets html body content for each page in course
 #List will be in the correct index order as html_files because both are lists and html_data is being appended in the same order as html_files
 #TODO: I don't like that both html_files and html_data are lists.  It seems inefficient.  Combine into one Dict?
-def getHtmlData(html_files):
-    html_data = []
-    for html_file in html_files:
-        if html_file is not None:
-            with open(html_file, 'r') as f:
-                contents = f.read()
-                m = re.search('<span url="([^\n]+)"></span>', contents)
-                local_url_var = m.group(1) if m is not None else None
-                html_data.append((contents, local_url_var)) #appends Type: tuple
-                f.close()
-
-    return html_data
+#def getHtmlData(html_files):
+#    html_data = []
+#    for html_file in html_files:
+#        if html_file is not None:
+#            with open(html_file, 'r') as f:
+#                contents = f.read()
+#                m = re.search('<span url="([^\n]+)"></span>', contents)
+#                local_url_var = m.group(1) if m is not None else None
+#                html_data.append((contents, local_url_var)) #appends Type: tuple
+#                f.close()
+#
+#    return html_data
 
 
 #Returns a dictionary of all course pages sorted alphabetically with html file path and html content as values
-def storeHtmlData(html_files, urls):
-    html_data = getHtmlData(html_files) #Type List: [(html_content, file_url_variable)]
-    html_dict = {}
-    sorted_dict = {}
-    unset = []
-    errors = False
-
-    for i in range(len(html_files)):
-        key = re.search('\d+_([^/]+.html$)', html_files[i])
-        #sets the file 'url' without the 00_ as the key
-        #stores both the full html file and the html data from the file
-        #key must be a valid url
-        #TODO: 1st conditional supports our naming convention, but may be better to see if file name contains url anywhere in file name
-        if key in urls:
-            html_dict[str(key.group(1)).replace('_','-')] = html_files[i], html_data[i][0], html_data[i][1] #key = file path, html content, file url string variable
-        elif html_data[i][1] is not None:
-            key = (html_data[i][1])
-            html_dict[key] = html_files[i], html_data[i][0], html_data[i][1]
-        else:
-            print(bcolors.FAIL + 'URL is not in file name and no URL is provided in file for {}'.format(html_files[i]) + bcolors.ENDC)
-
-        #sorts dictionary alphabetically by key with lambda function for sort
-        sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[1]))
-
-    # assert(errors == False)
-    return sorted_dict #TYPE: key: file path, html content
+#def storeHtmlData(html_files, urls):
+#    html_data = getHtmlData(html_files) #Type List: [(html_content, file_url_variable)]
+#    html_dict = {}
+#    sorted_dict = {}
+#    unset = []
+#    errors = False
+#
+#    for i in range(len(html_files)):
+#        key = re.search('\d+_([^/]+.html$)', html_files[i])
+#        #sets the file 'url' without the 00_ as the key
+#        #stores both the full html file and the html data from the file
+#        #key must be a valid url
+#        #TODO: 1st conditional supports our naming convention, but may be better to see if file name contains url anywhere in file name
+#        if key in urls:
+#            html_dict[str(key.group(1)).replace('_','-')] = html_files[i], html_data[i][0], html_data[i][1] #key = file path, html content, file url string variable
+#        elif html_data[i][1] is not None:
+#            key = (html_data[i][1])
+#            html_dict[key] = html_files[i], html_data[i][0], html_data[i][1]
+#        else:
+#            print(bcolors.FAIL + 'URL is not in file name and no URL is provided in file for {}'.format(html_files[i]) + bcolors.ENDC)
+#
+#        #sorts dictionary alphabetically by key with lambda function for sort
+#        sorted_dict = OrderedDict(sorted(html_dict.items(), key=lambda t: t[1]))
+#
+#    # assert(errors == False)
+#    return sorted_dict #TYPE: key: file path, html content
 
 
 #Ensures that files are matched to urls, fails if file name is not a url in course
-def matchFilesToUrls(urls,html_dict):
-    matched_dict = {}
-    skipped = urls #type: Array
-    count = 0
-    for html_dict_key, values in html_dict.items():
-        mut_key = html_dict_key.replace('_','-')
-        m = re.search('^[^/.]+', mut_key) #Is this regex necessary? if url = mut_key?
-        for url in urls:
-            if m is not None:
-                if url == m.group(0):
-                    matched_dict[count] = url, html_dict_key
-                    skipped.remove(url)
-                    count += 1
-            elif values[2] == url:                          #If url variable in page is the same as Canvas page url
-                matched_dict[count] = url, html_dict_key
-                skipped.remove(url)
-                count += 1 
-
-    return matched_dict, skipped
+#def matchFilesToUrls(urls,html_dict):
+#    matched_dict = {}
+#    skipped = urls #type: Array
+#    count = 0
+#    for html_dict_key, values in html_dict.items():
+#        mut_key = html_dict_key.replace('_','-')
+#        m = re.search('^[^/.]+', mut_key) #Is this regex necessary? if url = mut_key?
+#        for url in urls:
+#            if m is not None:
+#                if url == m.group(0):
+#                    matched_dict[count] = url, html_dict_key
+#                    skipped.remove(url)
+#                    count += 1
+#            elif values[2] == url:                          #If url variable in page is the same as Canvas page url
+#                matched_dict[count] = url, html_dict_key
+#                skipped.remove(url)
+#                count += 1 
+#
+#    return matched_dict, skipped
 
 
 #Gets every page in a course and appends the page url to a list
@@ -185,15 +185,13 @@ def updateCoursePages(top_directory):
     info_lists = []
     directories = getHtmlFolders(top_directory)
 
-    canvas_pages = getCoursePages(course_id, headers)
-    urls = [] #List of all urls of canvas pages in given course
-    for page_url in canvas_pages:
-        urls.append(page_url)
+    #if course_id is not None:
+        #urls = getCoursePages(course_id, headers) #List of all urls of canvas pages in given course
 
-    #Glob html will work different if html files are not stored in sub folders
+        #Glob html will work different if html files are not stored in sub folders
     if not directories:
         html_files = globHtml(top_directory)
-        html_dict = storeHtmlData(html_files[0], urls) #globHtml returns list of lists with one list
+        #html_dict = storeHtmlData(html_files[0], urls) #globHtml returns list of lists with one list
     else:
         for i in range(len(directories)):
             html_info = globHtml(directories[i])
@@ -202,55 +200,15 @@ def updateCoursePages(top_directory):
         for ls in list_of_files:
             for f in ls:
                 html_files.append(f)
-        html_dict = storeHtmlData(html_files, urls)
 
-    #because Canvas sorts different than Python
-    #sorted_urls = sorted(urls, key=lambda t: t[0])
-    match = matchFilesToUrls(urls, html_dict)
-    matched_dict = match[0]
+    for f in html_files:
+        print(f)
+        updateIndividualPage(course_id, headers, path, url) 
 
-#    try:
-        #assert(len(urls) == len(html_dict))
-    count = 0
-    for key, values in matched_dict.items():
-        url = matched_dict[count][0]
-        path = html_dict[matched_dict[count][1]][0]
-        content = html_dict[matched_dict[count][1]][1]
-        updateIndividualPage(course_id, headers, path, url, content) 
-        count += 1
-    print(bcolors.BOLD + 'Success!' + bcolors.ENDC)
-    print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(canvas_pages)) + bcolors.ENDC)
-    print(bcolors.FAIL + 'Pages skipped: {}'.format(match[1]) + bcolors.ENDC)
-#    except AssertionError:
-#        count = 0
-#        print(len(html_dict), len(urls))
-#        for key, value in html_dict.items():
-#            print(key, bcolors.WARNING + urls[count] + bcolors.ENDC)
-#            count += 1
-
-
-#Function specifically for MNSTL One Time Use
-#def updatePageTitles(course_id, headers, pattern):
-#    urls = getCoursePages(course_id, headers)
-#    for url in urls:
-#        m = re.search(pattern, url)
-#        num = m.group(1)
-#        re.sub(pattern, '{num}.', url)
-#        print(page)
-#        break
-#
-
-
-#DEPRECATED
-#Updates html body content for each Canvas page in a given coures given the directory where the html files are stored
-# def updateCoursePages(course_id, headers, html_files):
-#     pages = getCoursePages(course_id, headers)
-#     count = 0
-
-#     assert(len(pages) == len(html_files))
-#     for page_url in pages:
-#         updateIndividualPage(course_id, headers, page_url, html_files[count])
-#         count += 1
+    print(bcolors.BOLD + 'Success!' + bcolors.ENDC) 
+    if course_id is not None:
+        urls = getCoursePages(course_id, headers) #List of all urls of canvas pages in given course
+        print(bcolors.WARNING + '{0} pages updated out of {1}'.format(count, len(html_files)) + bcolors.ENDC)
 
 
 #Prints json object for individual page
@@ -263,57 +221,39 @@ def getPageInformation(course_id, page_url, headers):
 
 
 #Updates html body content for given Canvas page and html file, for updating entire course
-def updateIndividualPage(course_id, headers, file_path, page_url=None, html_content=None):
-    #Gets url from span in page if exists
-    def getUrlVar():
-        with open(file_path, 'r') as f:
-            contents = f.read()
-            m = re.search('<span url="([^\n]+\])"></span>', contents)
-            if m is not None:
-                page_url = m.group(1)
-                return page_url
-            else:
-                return None
-
-    def getCoursesVar():
-        with open(file_path, 'r') as f:
-            contents = f.read()
-            m = re.search('<span courses="([^\n]+)"></span>', contents)
-            if m is not None:
-                courses_var = m.group(1)
-                return courses_var
-            else:
-                return None
-
+def updateIndividualPage(course_id, headers, file_path, page_url=None):
     def getPageInfo():
         with open(file_path, 'r') as f:
             contents = f.read()
-            m = re.search('<span url="([^\n]+)" courses="([^\n]+)"></span>', contents)
-            if m is not None:
-                page_url = m.group(1)
-                courses = m.group(2)
-                return page_url, courses
-            else:
-                return None, None
+            patterns = ['<span url="([^\n]+)" courses="([^\n]+)"></span>', '<span url="([^\n]+)"></span>', '<span courses="([^\n]+)"></span>']
+            for i in range(len(patterns)):
+                m = re.search(patterns[i], contents)
+                if m is not None:
+                    return m.groups(), i, contents
 
-    def update(page_url, course_id):
+        print('No variables provided in command or file for: {}'.format(file_path))
+
+    def checkPageExistsInCanvas(url):
+        r = requests.get(url, headers=headers)
+        return r.status_code
+    
+    def update(page_url, course_id, html_content):
         url = url_base + course_id + '/pages/' + page_url
-        print(url)
-        #if html_content is not None:
-        #    data = [('wiki_page[body]', html_content),]
-        #    r = requests.put(url, headers=headers, data=data)
-        #    print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC) if r.status_code == 200 else print(bcolors.FAIL + 'Request Error: {}\nPage: {}'.format(r.status_code,page_url) + bcolors.ENDC)
-        #else:
-        #    with open(file_path, 'r') as f:
-        #        html = f.read()
-        #    data = [('wiki_page[body]', html),]
-        #    r = requests.put(url, headers=headers, data=data)
-        #    f.close()
+        data = [('wiki_page[body]', html_content),]
+        status = checkPageExistsInCanvas(url)
+        if status == 200:
+            r = requests.put(url, headers=headers, data=data)
+            print(bcolors.OKBLUE + 'Updating: {} for course {}'.format(page_url, course_id) + bcolors.ENDC) if r.status_code == 200 else print(bcolors.FAIL + 'Request Error: {}\nPage: {}'.format(r.status_code,page_url) + bcolors.ENDC)
+        else:
+            print('Received {} response for {}'.format(status, page_url))
+
+    page_info = getPageInfo()
+    pattern_match_case = page_info[1]
+    html_content = page_info[2]
 
     course_ids = []
     if course_id is None:
-        course_ids = getPageInfo()[1]
-        course_ids = getCoursesVar() if course_ids is None else course_ids #If url var is not in page, checks secondary regex in page to get courses var
+        course_ids = page_info[0][1] if pattern_match_case == 0 else page_info[0][0] #Checks which regex case was hit in file
         course_ids = course_ids.split(',')
         course_ids = [item.replace(' ','') for item in course_ids] #So ' ' in list don't matter
     else:
@@ -321,15 +261,14 @@ def updateIndividualPage(course_id, headers, file_path, page_url=None, html_cont
 
     #updates using url in file if no url is specified in CLI command
     if page_url is None:
-        page_url = getPageInfo()[0]
-        page_url = getUrlVar() if page_url is None else page_url #If course var is not in page, checks secondary regex in page to get url var
+        page_url = page_info[0][0] #Match is always 1st regex group
         for course in course_ids:
             str(course)
-            update(page_url, course) if page_url is not None else print('No URL variable provided in file')
+            update(page_url, course, html_content) if page_url is not None else print('No URL variable provided in file')
     else:
         for course in course_ids:
             str(course)
-            update(page_url, course)
+            update(page_url, course, html_content)
 
 
 #Create a new course in Canvas
@@ -464,3 +403,14 @@ if __name__  == '__main__':
     # updateCoursePages(course_id, headers, html_files)
     # storeHtmlData(html_files)
     # module_name = 'Teacher Guide'
+
+#Function specifically for MNSTL One Time Use
+#def updatePageTitles(course_id, headers, pattern):
+#    urls = getCoursePages(course_id, headers)
+#    for url in urls:
+#        m = re.search(pattern, url)
+#        num = m.group(1)
+#        re.sub(pattern, '{num}.', url)
+#        print(page)
+#        break
+#
