@@ -21,14 +21,14 @@ def selectAction():
     #commands for updating entire course
     parser_uc = subparsers.add_parser('uc', help='Commands to use when updateCoursePages')
     parser_uc.add_argument('top_directory', help='Enter the directory that contains the html files, or subfolders that contain the html files', type=str)
-    parser_uc.add_argument('cid', help='Enter course ID', default='', type=str)
+    parser_uc.add_argument('cid', help='Enter course ID', nargs='?', default=None, type=str) #nargs allows default to work
     parser_uc.set_defaults(which='uc')
 
     #commands for updating individual course page
     parser_ind = subparsers.add_parser('ind', help='Commands to use when updateIndividualPage')
     parser_ind.add_argument('-url','--page_url', action='store', help='Enter the last section of the url that the page is on', type=str)
     parser_ind.add_argument('file_path', help='Enter the path to file on your local device', type=str)
-    parser_ind.add_argument('cid', help="Enter course ID", default="", type=str)
+    parser_ind.add_argument('cid', help="Enter course ID", nargs='?', default=None, type=str)
     parser_ind.set_defaults(which='ind')
 
     #commands for updating media server
@@ -268,32 +268,68 @@ def updateIndividualPage(course_id, headers, file_path, page_url=None, html_cont
     def getUrlVar():
         with open(file_path, 'r') as f:
             contents = f.read()
-            m = re.search('<span url="([^\n]+)"></span>', contents)
+            m = re.search('<span url="([^\n]+\])"></span>', contents)
             if m is not None:
                 page_url = m.group(1)
                 return page_url
             else:
                 return None
 
-    def update(page_url):
+    def getCoursesVar():
+        with open(file_path, 'r') as f:
+            contents = f.read()
+            m = re.search('<span courses="([^\n]+)"></span>', contents)
+            if m is not None:
+                courses_var = m.group(1)
+                return courses_var
+            else:
+                return None
+
+    def getPageInfo():
+        with open(file_path, 'r') as f:
+            contents = f.read()
+            m = re.search('<span url="([^\n]+)" courses="([^\n]+)"></span>', contents)
+            if m is not None:
+                page_url = m.group(1)
+                courses = m.group(2)
+                return page_url, courses
+            else:
+                return None, None
+
+    def update(page_url, course_id):
         url = url_base + course_id + '/pages/' + page_url
-        if html_content is not None:
-            data = [('wiki_page[body]', html_content),]
-            r = requests.put(url, headers=headers, data=data)
-            print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC) if r.status_code == 200 else print(bcolors.FAIL + 'Request Error: {}\nPage: {}'.format(r.status_code,page_url) + bcolors.ENDC)
-        else:
-            with open(file_path, 'r') as f:
-                html = f.read()
-            data = [('wiki_page[body]', html),]
-            r = requests.put(url, headers=headers, data=data)
-            f.close()
+        print(url)
+        #if html_content is not None:
+        #    data = [('wiki_page[body]', html_content),]
+        #    r = requests.put(url, headers=headers, data=data)
+        #    print(bcolors.OKBLUE + 'Updating: {}'.format(page_url) + bcolors.ENDC) if r.status_code == 200 else print(bcolors.FAIL + 'Request Error: {}\nPage: {}'.format(r.status_code,page_url) + bcolors.ENDC)
+        #else:
+        #    with open(file_path, 'r') as f:
+        #        html = f.read()
+        #    data = [('wiki_page[body]', html),]
+        #    r = requests.put(url, headers=headers, data=data)
+        #    f.close()
+
+    course_ids = []
+    if course_id is None:
+        course_ids = getPageInfo()[1]
+        course_ids = getCoursesVar() if course_ids is None else course_ids #If url var is not in page, checks secondary regex in page to get courses var
+        course_ids = course_ids.split(',')
+        course_ids = [item.replace(' ','') for item in course_ids] #So ' ' in list don't matter
+    else:
+        course_ids.append(course_id)
 
     #updates using url in file if no url is specified in CLI command
     if page_url is None:
-        page_url = getUrlVar()
-        update(page_url=page_url) if page_url is not None else print('No URL variable provided in file')
+        page_url = getPageInfo()[0]
+        page_url = getUrlVar() if page_url is None else page_url #If course var is not in page, checks secondary regex in page to get url var
+        for course in course_ids:
+            str(course)
+            update(page_url, course) if page_url is not None else print('No URL variable provided in file')
     else:
-        update(page_url)
+        for course in course_ids:
+            str(course)
+            update(page_url, course)
 
 
 #Create a new course in Canvas
@@ -387,6 +423,7 @@ if __name__  == '__main__':
        updateCoursePages(args.top_directory)
     if args.which == 'ind':
        course_id = args.cid
+       #Always passing course_id even if None to avoid another if statement
        if args.page_url is not None:
            updateIndividualPage(course_id, headers, args.file_path, args.page_url)
        else:

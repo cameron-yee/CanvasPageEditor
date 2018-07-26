@@ -153,7 +153,7 @@ import os
 ############################################
 
 
-#VATL change
+#Seaperch change
 def getFolderFiles(directory):
     files = glob(directory + '{}'.format('/*.html'))
     return files
@@ -169,20 +169,30 @@ def getFolders(top_directory):
     return sf_paths
 
 
-def addTEContent(filepath):
+def addSideMenu(filepath):
     with open(filepath, 'r') as f:
-        contents = f.read()
+        raw_contents = f.read()
+        contents = '\t\t\t'.join(raw_contents.splitlines(True))
+
+        rpt_pattern = '<span class="remove-page-title"></span>\n'
+        remove = ''
+        nc = re.sub(rpt_pattern, remove, contents)
+
+        span_pattern = '<span url="[^\n]+"></span>'
+        r = re.search(span_pattern, nc)
+        m = r.group(0)
         f.close()
 
         with open(filepath, 'w') as f:
-            span_pattern = '<span class="remove-page-title"></span>'
-            add_to_top = '<a href="#" class="btn btn-primary student-toggle" role="button">\n\tParticipant View\n\t<span class="screenreader-only">Toggle Participant View</span>\n</a>\n<a href="#" class="btn btn-primary teacher-toggle" role="button">\n\tFacilitator View\n\t<span class="screenreader-only">Toggle Facilitator View</span>\n</a>\n\n<span class="remove-page-title"></span>\n\n<!--Student View-->\n<div class="grid-row teacher-wrap-around-top-margin-adjust">\n\t<div id="student-view" class="col-xs-12 col-lg-6">\n\t\t<div class="bscs-accordion bscs-student-accordion" aria-multiselectable="false">\n\t\t\t<div class="bscs-accordion-section">\n\t\t\t\t<a id="student-view-heading" class="bscs-accordion-section-title active-accordion" aria-expanded="true" href="#bscs-accordion-0">Participant View</a>\n\t\t\t\t<div id="bscs-accordion-0" class="bscs-accordion-section-content-wrapper open">\n\t\t\t\t\t<div class="bscs-accordion-section-content">'
+            #span_pattern = '<span url="[^\n]+"></span>'
+            add_to_top = '<span class="remove-page-title"></span>\n{}\n\n<div class="content-box">\n\t<div class="grid-row">\n\t\t<div class="col-xs-12 col-md-3 col-lg-2">\n\t\t\t<div id="side-menu"></div>\n\t\t</div>\n\t\t<div class="col-xs-12 col-md-9 col-lg-10">'.format(m)
 
-            add_to_bottom = '\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\n\t<!--Teacher Content-->\n\t<div class="col-xs-12 col-lg-6">\n\t\t<div class="bscs-accordion" aria-multiselectable="false">\n\t\t\t<div class="bscs-accordion-section">\n\t\t\t\t<a class="bscs-accordion-section-title active-accordion" href="#bscs-accordion-1" aria-expanded="true">Action</a>\n\t\t\t\t<div id="bscs-accordion-1" class="bscs-accordion-section-content-wrapper open">\n\t\t\t\t\t<div class="bscs-accordion-section-content">\n\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>'
+            add_to_bottom = '\n\t\t</div>\n\t</div>\n</div>'
 
-            nc = re.sub(span_pattern, add_to_top, contents)
+            nc = re.sub(span_pattern, add_to_top, nc)
             #nc = contents.replace(span_pattern, add_to_top, 1)
             f.write(nc + add_to_bottom)
+            ##f.write(r.group(0) + nc + add_to_bottom)
             f.close()
 
        # with open(filepath, 'a') as f:
@@ -190,21 +200,22 @@ def addTEContent(filepath):
        #     f.write(add_to_bottom)
        #     f.close()
 
-            span_pattern = '<span class="remove-page-title"></span>\n\n'
-            remove = ''
+            #span_pattern = '<span class="remove-page-title"></span>\n\n'
+            #remove = ''
 
-            nc = re.sub(span_pattern, remove, contents)
-            f.write(nc)
-            f.close()
+            #nc = re.sub(span_pattern, remove, contents)
+            #f.write(nc)
+            #f.close()
 
 
 if __name__ == '__main__':
-    #updateAllFiles('/Users/cameronyee/Desktop/canvas/courses/mss/courses/student_edition/html/04_science_and_society')
-    sf_paths = getFolders('/Users/cyee/Desktop/canvas/courses/vatl/sessions')
+    #updateAllFiles('/Users/cyee/Documents/canvas/courses/mss/courses/student_edition/html/04_science_and_society')
+    sf_paths = getFolders('/Users/cyee/Documents/canvas/courses/seaperch/courses/se')
     for path in sf_paths:
         files = getFolderFiles(path)
         for f in files:
-            addTEContent(f)
+            addSideMenu(f)
+
             print(bcolors.WARNING + 'UPDATED: ' + bcolors.ENDC + bcolors.OKBLUE + path + bcolors.ENDC)
     
 
