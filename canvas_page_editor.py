@@ -200,10 +200,11 @@ def updateCoursePages(top_directory):
         for ls in list_of_files:
             for f in ls:
                 html_files.append(f)
-
+    
+    count = 0
     for f in html_files:
-        url = checkFileNameForUrl(f)
-        updateIndividualPage(course_id, headers, path)
+        success_status = updateIndividualPage(course_id, headers, f)
+        count += success_status
 
     print(bcolors.BOLD + 'Success!' + bcolors.ENDC) 
     if course_id is not None:
@@ -272,18 +273,28 @@ def updateIndividualPage(course_id, headers, file_path):
 
         return None
 
+    success = True
+    def fail():
+       success = False
+
     #updates using url in file if no url is specified in CLI command
     if page_info[0] is not None:
         page_url = page_info[0][0] if pattern_match_case != 2 else getPageUrlFromFile() #Match is always 1st regex group
         for course in course_ids:
             str(course)
-            update(page_url, course, html_content) if page_url is not None else print('No URL variable provided in file')
+            update(page_url, course, html_content) if page_url is not None else fail()
     else:
         page_url = getPageUrlFromFile()
         for course in course_ids:
             str(course)
-            update(page_url, course, html_content) if page_url is not None else print('No URL variable provided in file')
+            update(page_url, course, html_content) if page_url is not None else fail()
 
+    #Count of successes for updateCourse
+    if not success:
+        print('No URL variable provided in file for {}'.format(page_url))
+        return 0
+
+    return 1
 
 
 #Create a new course in Canvas
