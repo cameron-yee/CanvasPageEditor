@@ -202,8 +202,8 @@ def updateCoursePages(top_directory):
                 html_files.append(f)
 
     for f in html_files:
-        print(f)
-        updateIndividualPage(course_id, headers, path, url) 
+        url = checkFileNameForUrl(f)
+        updateIndividualPage(course_id, headers, path)
 
     print(bcolors.BOLD + 'Success!' + bcolors.ENDC) 
     if course_id is not None:
@@ -221,7 +221,7 @@ def getPageInformation(course_id, page_url, headers):
 
 
 #Updates html body content for given Canvas page and html file, for updating entire course
-def updateIndividualPage(course_id, headers, file_path, page_url=None):
+def updateIndividualPage(course_id, headers, file_path):
     def getPageInfo():
         with open(file_path, 'r') as f:
             contents = f.read()
@@ -231,7 +231,8 @@ def updateIndividualPage(course_id, headers, file_path, page_url=None):
                 if m is not None:
                     return m.groups(), i, contents
 
-        print('No variables provided in command or file for: {}'.format(file_path))
+        return None, None, contents
+        #print('No variables provided in command or file for: {}'.format(file_path))
 
     def checkPageExistsInCanvas(url):
         r = requests.get(url, headers=headers)
@@ -248,7 +249,9 @@ def updateIndividualPage(course_id, headers, file_path, page_url=None):
             print('Received {} response for {}'.format(status, page_url))
 
     page_info = getPageInfo()
-    pattern_match_case = page_info[1]
+    if page_info[0] is not None:
+        pattern_match_case = page_info[1]
+
     html_content = page_info[2]
 
     course_ids = []
@@ -259,16 +262,28 @@ def updateIndividualPage(course_id, headers, file_path, page_url=None):
     else:
         course_ids.append(course_id)
 
+    #Checks our naming convention for url in file name
+    def getPageUrlFromFile():
+        m = re.search('\d+_([^/]+).html$',file_path)
+        if m is not None:
+            file_name = m.group(1)
+            url = file_name.replace('_','-')
+            return url
+
+        return None
+
     #updates using url in file if no url is specified in CLI command
-    if page_url is None:
-        page_url = page_info[0][0] #Match is always 1st regex group
+    if page_info[0] is not None:
+        page_url = page_info[0][0] if pattern_match_case != 2 else getPageUrlFromFile() #Match is always 1st regex group
         for course in course_ids:
             str(course)
             update(page_url, course, html_content) if page_url is not None else print('No URL variable provided in file')
     else:
+        page_url = getPageUrlFromFile()
         for course in course_ids:
             str(course)
-            update(page_url, course, html_content)
+            update(page_url, course, html_content) if page_url is not None else print('No URL variable provided in file')
+
 
 
 #Create a new course in Canvas
