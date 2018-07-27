@@ -26,7 +26,7 @@ def selectAction():
 
     #commands for updating individual course page
     parser_ind = subparsers.add_parser('ind', help='Commands to use when updateIndividualPage')
-    parser_ind.add_argument('-url','--page_url', action='store', help='Enter the last section of the url that the page is on', type=str)
+    #parser_ind.add_argument('-url','--page_url', action='store', help='Enter the last section of the url that the page is on', type=str)
     parser_ind.add_argument('file_path', help='Enter the path to file on your local device', type=str)
     parser_ind.add_argument('cid', help="Enter course ID", nargs='?', default=None, type=str)
     parser_ind.set_defaults(which='ind')
@@ -322,10 +322,7 @@ if __name__  == '__main__':
     if args.which == 'ind':
        course_id = args.cid
        #Always passing course_id even if None to avoid another if statement
-       if args.page_url is not None:
-           updateIndividualPage(course_id, headers, args.file_path, args.page_url)
-       else:
-           updateIndividualPage(course_id, headers, args.file_path)
+       updateIndividualPage(course_id, headers, args.file_path)
     if args.which == 'static':
         course = args.course_prefix
         if args.css is not None:
