@@ -62,7 +62,7 @@ def getHtmlFolders(top_directory):
 def globHtml(directory):
     html_files = []
     html_files.append(glob(directory + '{}'.format('/**/*.html'), recursive=True))
-    return html_files
+    return html_files[0]
 
 
 #Gets every page in a course and appends the page url to a list
@@ -100,28 +100,16 @@ def getCoursePages(course_id, headers):
 
 def updateCoursePages(top_directory):
     html_files = []
-    info_lists = []
     directories = getHtmlFolders(top_directory)
 
-    #if course_id is not None:
-        #urls = getCoursePages(course_id, headers) #List of all urls of canvas pages in given course
+    for i in range(len(directories)):
+        directory_html_files = globHtml(directories[i])
+        for f in directory_html_files:
+            if f not in html_files: html_files.append(f)
 
-        #Glob html will work different if html files are not stored in sub folders
-    if not directories:
-        html_files = globHtml(top_directory)
-        #html_dict = storeHtmlData(html_files[0], urls) #globHtml returns list of lists with one list
-    else:
-        for i in range(len(directories)):
-            html_info = globHtml(directories[i])
-            info_lists.append(html_info[0])
-        list_of_files = [x for x in info_lists if x != []]
-        for ls in list_of_files:
-            for f in ls:
-                html_files.append(f)
-    
     skipped = []
     count = 0
-    for f in html_files:
+    for f in sorted(html_files):
         success_status = updateIndividualPage(course_id, headers, f)
         count += success_status
         if success_status == 0: skipped.append(os.path.basename(f))
