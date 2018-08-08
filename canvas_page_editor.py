@@ -20,7 +20,9 @@ def selectAction():
 
     #commands for updating entire course
     parser_uc = subparsers.add_parser('uc', help='Commands to use when updateCoursePages')
-    parser_uc.add_argument('top_directory', help='Enter the directory that contains the html files, or subfolders that contain the html files', type=str)
+    parser_uc.add_argument('-n','--name', help='Change course name', action='store', nargs='?', default=None)
+    parser_uc.add_argument('-c','--code', help='Change course code', action='store', nargs='?', default=None)
+    parser_uc.add_argument('top_directory', help='Enter the directory that contains the html files, or subfolders that contain the html files', nargs='?', default=None, type=str)
     parser_uc.add_argument('cid', help='Enter course ID', nargs='?', default=None, type=str) #nargs allows default to work
     parser_uc.set_defaults(which='uc')
 
@@ -223,11 +225,36 @@ def createNewCourse(course_name, headers):
     r = requests.post(url, headers=headers, data=data)
 
 
+#uc argparser
 #Update course name
 def updateCourseName(new_course_name, course_id, headers):
     url = url_base + course_id
-    data = [('course[name]', new_course_name),]
-    r = requests.put(url, headers=headers, data=data)
+    r_old = requests.get(url, headers=headers)
+    old_data = r_old.json()
+    old_course_name = old_data['name']
+
+    data_update = [('course[name]', new_course_name),]
+    r_update = requests.put(url, headers=headers, data=data_update)
+
+    print(bcolors.BOLD + 'Updated course name for course {}'.format(course_id) + bcolors.ENDC) 
+    print(bcolors.WARNING + 'Old course name: {}'.format(old_course_name) + bcolors.ENDC) 
+    print(bcolors.WARNING + 'New course name: {}'.format(new_course_name) + bcolors.ENDC) 
+
+
+#uc argparser
+#Update course code
+def updateCourseCode(new_course_code, course_id, headers):
+    url = url_base + course_id
+    r_old = requests.get(url, headers=headers)
+    old_data = r_old.json()
+    old_course_code = old_data['course_code']
+
+    data_update = [('course[course_code]', new_course_code),]
+    r_update = requests.put(url, headers=headers, data=data_update)
+
+    print(bcolors.BOLD + 'Updated course code for course {}'.format(course_id) + bcolors.ENDC) 
+    print(bcolors.WARNING + 'Old course code: {}'.format(old_course_code) + bcolors.ENDC) 
+    print(bcolors.WARNING + 'New course code: {}'.format(new_course_code) + bcolors.ENDC) 
 
 
 #Create a new module in a Canvas Course
@@ -306,7 +333,14 @@ if __name__  == '__main__':
 
     if args.which == 'uc':
        course_id = args.cid
-       updateCoursePages(args.top_directory)
+       if args.name is not None:
+           course_id = args.top_directory #If args.name is given, top_directory argument will be the givin course id because only 2 arguments will be given
+           updateCourseName(str(args.name), course_id, headers) 
+       elif args.code is not None: 
+           course_id = args.top_directory #If args.code is given, top_directory argument will be the givin course id because only 2 arguments will be given
+           updateCourseCode(str(args.code), args.top_directory, headers) 
+       else:
+           updateCoursePages(args.top_directory)
     if args.which == 'ind':
        course_id = args.cid
        #Always passing course_id even if None to avoid another if statement
