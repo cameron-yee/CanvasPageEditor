@@ -46,9 +46,26 @@ Update course name
 $ capi uc --name <new-course-page> <course-id>
 ```
 
+NOTE: It is also possible to use CAPI without adding the url and courses tag to the top of the file.  If doing so, the course id must be included as a CLI argument.
+
 There are many other possibilities.  All available option can be seen by using the --help flag.
 
 ```bash
 $ capi --help
 $ capi uc -h
 ```
+
+## Usage with gulp.js
+
+1. Install the latest version of NodeJS and gulp.js
+2. Place gulpfile.js in folder above html files.  Edit the path to the html files in the gulpfile.js file.
+3. In terminal, navigate to the folder that contains the gulpfile.js file.
+4. Run
+
+```bash
+$ gulp watch
+```
+
+5. Open a html file in the directory that gulp is watching and save it.  Terminal will output the normal capi ind print statements if setup right.
+
+NOTE: This will only work if the html files contain both the url and courses tag at the top of the files.
