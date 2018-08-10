@@ -30,6 +30,7 @@ def selectAction():
     parser_ind = subparsers.add_parser('ind', help='Commands to use when updateIndividualPage')
     #parser_ind.add_argument('-url','--page_url', action='store', help='Enter the last section of the url that the page is on', type=str)
     parser_ind.add_argument('file_path', help='Enter the path to file on your local device', type=str)
+    parser_ind.add_argument('-nn', '--newname', action='store', nargs='?', default=None)
     parser_ind.add_argument('cid', help="Enter course ID", nargs='?', default=None, type=str)
     parser_ind.set_defaults(which='ind')
 
@@ -136,7 +137,7 @@ def getPageInformation(course_id, page_url, headers):
 
 #Updates html body content for given Canvas page and html file, for updating entire course
 #Returns either 0 or 1 depending on if update was successful
-def updateIndividualPage(course_id, headers, file_path):
+def updateIndividualPage(course_id, headers, file_path, page_name=None):
     def getPageInfo():
         with open(file_path, 'r') as f:
             contents = f.read()
@@ -158,7 +159,30 @@ def updateIndividualPage(course_id, headers, file_path):
     def fail():
         success = False
 
+    #Updates page title
+    def changePageName(old_page_url, course_id):
+        url = url_base + course_id + '/pages/' + old_page_url
+        name_data = [('wiki_page[title]', page_name),]
+        r_name = requests.put(url, headers=headers, data=name_data)
+        r_name_data = r_name.json()
+        new_url = r_name_data['url']
+
+        def updatePageUrl(new_url):
+            page_info = getPageInfo()
+            contents = page_info[2]
+            old_url = page_info[0][0] if page_info[1] is not 2 else print(bcolors.FAIL + 'No URL provided in file.' + bcolors.ENDC)
+            updated_url_tag = 'url="{}" courses="{}"'.format(new_url, page_info[0][1])
+            updated_contents = re.sub('url="[^\n]+"', updated_url_tag, contents)
+            with open(file_path, 'w') as f:
+                f.write(updated_contents)
+                f.close()
+            print(bcolors.WARNING + 'Page name changed to {} for url: {} (OLD URL) in course {}\nWARNING: THE PAGE URL HAS CHANGED TO: {}'.format(page_url, old_url, course_id, new_url) + bcolors.ENDC) if r_name.status_code == 200 else print(bcolors.FAIL + 'Request Error: {}\nPage: {}'.format(r_name.status_code,page_url) + bcolors.ENDC)
+
+        updatePageUrl(new_url)
+        return new_url
+
     def update(page_url, course_id, html_content):
+        page_url = changePageName(page_url, course_id) if page_name is not None else page_url
         url = url_base + course_id + '/pages/' + page_url
         data = [('wiki_page[body]', html_content),]
         status = checkPageExistsInCanvas(url)
@@ -181,6 +205,7 @@ def updateIndividualPage(course_id, headers, file_path):
         print('No course_id variable provided in file for {}'.format(os.path.basename(file_path)))
         return 0
     elif course_id is None:
+        #TODO: Refactor this UUUUUUUUUUUUUgly code
         course_ids = page_info[0][1] if pattern_match_case == 0 else page_info[0][0] #Checks which regex case was hit in file
         course_ids = course_ids.split(',')
         course_ids = [item.replace(' ','') for item in course_ids] #So ' ' in list don't matter
@@ -257,6 +282,28 @@ def updateCourseCode(new_course_code, course_id, headers):
     print(bcolors.WARNING + 'New course code: {}'.format(new_course_code) + bcolors.ENDC) 
 
 
+#Create a new page in a Canvas Course
+def updatePageName(course_id, headers, page_name, file_path):
+    url = url_base + course_id + '/pages'
+
+    r_old = requests.get(url, headers=headers)
+    old_data = r_old.json()
+    old_course_name = old_data['name']
+
+    with open(file_path, 'r') as f:
+        body = f.read()
+        f.close()
+    data = [('wiki_page[title]', page_name), ('wiki_page[body]', body),]
+    r = requests.post(url, headers=headers, data=data)
+
+
+#########################################################################################################################
+#
+########## END FUNCTIONAL FUNCTIONS, functions below may work, but have not been updated or optimized ###################
+#
+#########################################################################################################################
+
+
 #Create a new module in a Canvas Course
 def createNewModule(module_name, course_id, headers):
     url = url_base + course_id + '/modules'
@@ -290,16 +337,6 @@ def createPageInModule(course_id, headers, page_name, module_name):
     return page_url
 
 
-#Create a new page in a Canvas Course
-def createNewPage(course_id, headers, page_name, file_path):
-    url = url_base + course_id + '/pages'
-    with open(file_path, 'r') as f:
-        body = f.read()
-        f.close()
-    data = [('wiki_page[title]', page_name), ('wiki_page[body]', body),]
-    r = requests.post(url, headers=headers, data=data)
-
-
 #TODO: Using old version of updateIndividualPage
 #Creates pages in Canvas course modulec and adds html content to each page
 def createPagesAndAddContent(course_id, headers, page_titles, html_files, module_name):
@@ -316,6 +353,10 @@ def createPagesAndAddContent(course_id, headers, page_titles, html_files):
     for i in range(len(page_titles)):
         page_url = createPage(course_id, headers, page_titles[i])
         updateIndividualPage(course_id, headers, page_url, html_files[i])
+
+
+##################################################################################################
+#Logistics code below
 
 
 #Gets token from hidden file so it will not show up on Git
@@ -344,7 +385,7 @@ if __name__  == '__main__':
     if args.which == 'ind':
        course_id = args.cid
        #Always passing course_id even if None to avoid another if statement
-       updateIndividualPage(course_id, headers, args.file_path)
+       updateIndividualPage(course_id, headers, args.file_path) if args.newname is None else updateIndividualPage(course_id, headers, args.file_path, args.newname)
     if args.which == 'static':
         course = args.course_prefix
         if args.css is not None:
