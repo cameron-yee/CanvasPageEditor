@@ -7,8 +7,15 @@ import os
 import argparse
 import auth
 from collections import OrderedDict
+
+#local file imports
 from colors import bcolors
 from media_server_update import *
+
+#chrome imports
+#from capichrome import browser, refreshPage, startChrome
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 
 #TODO: Add variable types to improve readability using typing.py lib
 #import typing
@@ -44,9 +51,33 @@ def selectAction():
     parser_static.add_argument('-sc', '--subcourse', action='store', help='Update css file on media server', type=str)
     parser_static.add_argument('-f','--folder', action='store', help='Folder to upload img to in AWS', type=str)
     parser_static.set_defaults(which='static')
+
+    #commands for using with chrome reload
+    parser_chrome = subparsers.add_parser('chrome', help='Commands to use when using capi with chromerefresh')
+    parser_chrome.set_defaults(which='chrome')
     
     args = parser.parse_args()
     return args
+
+
+#Chrome functions EXPERIMENTAL
+browser = None
+chromeUp = False
+def startChrome():
+    global browser
+    browser = webdriver.Chrome()
+    browser.get('https://bscs.instructure.com/courses')
+    email_input = browser.find_element_by_id('pseudonym_session_unique_id')
+    email_input.send_keys(auth.email)
+    password_input = browser.find_element_by_id('pseudonym_session_password')
+    password_input.send_keys(auth.canvas_password + Keys.RETURN)
+    chromeUp = True
+
+
+def refreshPage(course_id, url):
+    global browser
+    browser.get('https://bscs.instructure.com/courses/{cid}/pages/{url}'.format(cid=course_id, url=url))
+#END CHROME
 
 
 #Returns list of sub direct subfolders from given directory
@@ -188,6 +219,8 @@ def updateIndividualPage(course_id, headers, file_path, page_name=None):
         status = checkPageExistsInCanvas(url)
         if status == 200:
             r = requests.put(url, headers=headers, data=data)
+            if chromeUp:
+                refreshPage(course_id, page_url)
             print(bcolors.OKBLUE + 'Updating: {} for course {}'.format(page_url, course_id) + bcolors.ENDC) if r.status_code == 200 else print(bcolors.FAIL + 'Request Error: {}\nPage: {}'.format(r.status_code,page_url) + bcolors.ENDC)
         else:
             #TODO: This isn't working
@@ -402,6 +435,18 @@ if __name__  == '__main__':
         if args.css is None and args.js is None and args.html is None and args.img is None:
             upload_all(course, args.subcourse)
             print('Updated {} static files'.format(course))
+    if args.which == 'chrome':
+        course_id = None
+
+        startChrome()
+        chromeUp = True
+
+        def runChrome():
+            file_path = input('Enter file path: ')
+            updateIndividualPage(course_id, headers, file_path)
+
+        while chromeUp:
+            runChrome()
 
 
 #Function specifically for MNSTL One Time Use
