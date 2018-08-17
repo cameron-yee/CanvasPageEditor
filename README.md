@@ -16,9 +16,41 @@ alias capi=python3 canvas_page_editor.py
 
 NOTE: Make sure that Python3 is installed
 
+3. Setup auth.py file for sensitive information
+    * Create string variables in auth.py:
+    **To use Canvas LMS API**
+        TODO: Canvas LMS requires OAuth2 authentication.  This has not been set up yet.
+        * token: developer key for Canvas LMS
+    **For media server functions:**
+        * aws_access_key_id: login id to access AWS media server through SFTP
+        * aws_secret_access_key: login key to access AWS media server through SFTP
+        * tinify_api_key: API key to interact with TinyPNG/TinyJPG API (No official functionality yet in CAPI)
+        * server: media server address
+        * user: media server username
+        * password: media server password
+        * remote_base: current directory for interacting with media server after SFTP or FTP connection
+        * local_base: path to local files for media server upload
+        * email: email to login to Canvas LMS
+        * canvas_password: password to login to Canvas LMS
 
+     **For Chrome livereload:**
+        * google_email: email to login to Google account
+        * google_passowrd: password to login to Google account
 
-## Usage
+4. Before use, create a virtual environment in the top directory of the repository (or use Pipenv or Docker).
+
+```bash
+$ virtualenv venv
+$ source venv/bin/activate
+```
+
+5. Install requirements
+
+```bash
+$ pip3 install -r requirements.txt
+```
+
+## Canvas API usage
 
 For html files that are to be uploaded to Canvas, put the following tag at the top of the file:
 
@@ -88,8 +120,27 @@ To use livereload run:
 $ capi chrome <path-to-watch-folder>
 ```
 
+Now, when an event is detected in the watched folder, the file that triggered the event will be passed to updateIndividualPage() to be updated in Canvas, and the browser will navigate to the file page on Canvas.
+
 The &lt;path-to-watch-folder&gt; is the file directory that stores the html files for the canvas course.  In order for this to work, the files MUST have the url and courses tags at the top of the files.  The program will continue to run if a file is missing the tag, but Canvas will not be updated on file save and the browser will not be updated.
 
 TODO: Eventually this should support both Firefox and Safari at a minimum.
 
+## Media Server Usage
+
+```bash
+$ capi static --html <directory> -sc <subcourse_directory>
+$ capi static --css <directory> -sc <subcourse_directory>
+$ capi static --js <directory> -sc <subcourse_directory>
+```
+
+See source code to see how directories are expected to be organized.  This functionality is highly specified for our specific use.
+Although not included in this repository, it is possible to run this as a gulp task after minifying css/js files.
+
+Useful Documentation:
+
+[File event watching](https://pythonhosted.org/watchdog/)
+[Webdriver capabilities](https://selenium-python.readthedocs.io/)
+[Amazon S3 with python](https://boto3.readthedocs.io/en/latest/guide/s3-example-creating-buckets.html)
+[CLI functionality](https://docs.python.org/3/library/argparse.html)
 
