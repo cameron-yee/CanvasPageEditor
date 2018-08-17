@@ -8,7 +8,7 @@
 $ git clone https://github.com/cameron-yee/CanvasPageEditor.git
 ```
 
-2. Set alias for CLI functionality in ~/.bash_profile or ~/.bashrc
+2. Set alias for CLI functionality in ~/.bash&UnderBar;profile or ~/.bashrc
 
 ```
 alias capi=python3 canvas_page_editor.py
@@ -69,3 +69,27 @@ $ gulp watch
 5. Open a html file in the directory that gulp is watching and save it.  Terminal will output the normal capi ind print statements if setup right.
 
 NOTE: This will only work if the html files contain both the url and courses tag at the top of the files.
+
+## Chrome livereload
+
+1. Download ChromeDriver (NOT the browser) here: <https://sites.google.com/a/chromium.org/chromedriver/downloads>
+2. In auth.py, add variables for: email, password, google&UnderBar;email, google&UnderBar;password.  All four variable values should be stored as strings.  The values are:
+    * email: email used to login to Canvas
+    * password: password used to login to Canvas
+    * google&UnderBar;email: email used to login to Google account
+    * google&UnderBar;password: password used to login to Google account
+3. OPTIONAL: Add chrome extensions to Chrome on startup.
+    * Download extension .crx file from: <https://chrome-extension-downloader.com/>
+    * Place .crx file in ./extensions directory
+
+To use livereload run:
+
+```bash
+$ capi chrome <path-to-watch-folder>
+```
+
+The &lt;path-to-watch-folder&gt; is the file directory that stores the html files for the canvas course.  In order for this to work, the files MUST have the url and courses tags at the top of the files.  The program will continue to run if a file is missing the tag, but Canvas will not be updated on file save and the browser will not be updated.
+
+TODO: Eventually this should support both Firefox and Safari at a minimum.
+
+

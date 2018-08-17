@@ -67,9 +67,27 @@ def selectAction():
 #Chrome functions EXPERIMENTAL
 browser = None
 chromeUp = False
+
+def setExtensions():
+    chrome_options = webdriver.ChromeOptions()
+    ext_dir = './extensions'
+    ext_files = glob(ext_dir + '/*.crx')
+
+    for f in ext_files:
+        chrome_options.add_extension(f)
+
+    return chrome_options
+
 def startChrome():
     global browser
-    browser = webdriver.Chrome()
+    browser = webdriver.Chrome(chrome_options=setExtensions())
+    browser.get('https://www.google.com')
+    sign_in = browser.find_element_by_id('gb_70').click()
+    sign_in_email = browser.find_element_by_name('identifier').send_keys(auth.google_email + Keys.RETURN)
+    time.sleep(1)
+    sign_in_password = browser.find_element_by_name('password').send_keys(auth.google_password + Keys.RETURN)
+    time.sleep(1)
+
     browser.get('https://bscs.instructure.com/courses')
     email_input = browser.find_element_by_id('pseudonym_session_unique_id')
     email_input.send_keys(auth.email)
