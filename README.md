@@ -16,7 +16,7 @@ alias capi=python3 canvas_page_editor.py
 
 NOTE: Make sure that Python3 is installed
 
-3. Setup auth.py file for sensitive information
+3. Create a file named 'auth.py'. This will be used to store sensitive information
     * Create string variables in auth.py:
     **To use Canvas LMS API**
         TODO: Canvas LMS requires OAuth2 authentication.  This has not been set up yet.
@@ -139,8 +139,8 @@ Although not included in this repository, it is possible to run this as a gulp t
 
 Useful Documentation:
 
-[File event watching](https://pythonhosted.org/watchdog/)
-[Webdriver capabilities](https://selenium-python.readthedocs.io/)
-[Amazon S3 with python](https://boto3.readthedocs.io/en/latest/guide/s3-example-creating-buckets.html)
+[File event watching](https://pythonhosted.org/watchdog/)<br>
+[Webdriver capabilities](https://selenium-python.readthedocs.io/)<br>
+[Amazon S3 with python](https://boto3.readthedocs.io/en/latest/guide/s3-example-creating-buckets.html)<br>
 [CLI functionality](https://docs.python.org/3/library/argparse.html)
 
