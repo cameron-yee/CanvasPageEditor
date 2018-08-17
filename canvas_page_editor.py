@@ -16,6 +16,9 @@ from media_server_update import *
 #from capichrome import browser, refreshPage, startChrome
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import time
 
 #TODO: Add variable types to improve readability using typing.py lib
 #import typing
@@ -54,6 +57,7 @@ def selectAction():
 
     #commands for using with chrome reload
     parser_chrome = subparsers.add_parser('chrome', help='Commands to use when using capi with chromerefresh')
+    parser_chrome.add_argument('watchpath', help="Path to watch for content changes", type=str)
     parser_chrome.set_defaults(which='chrome')
     
     args = parser.parse_args()
@@ -77,6 +81,26 @@ def startChrome():
 def refreshPage(course_id, url):
     global browser
     browser.get('https://bscs.instructure.com/courses/{cid}/pages/{url}'.format(cid=course_id, url=url))
+
+
+class MySyncHandler(FileSystemEventHandler):
+
+    def on_modified(self, event):
+        filename = event.src_path
+        updateIndividualPage(None, headers, filename)
+
+
+## main loop
+def watch(watchpath):
+    observer = Observer()
+    observer.schedule(MySyncHandler(), watchpath, recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(10000)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 #END CHROME
 
 
@@ -440,14 +464,7 @@ if __name__  == '__main__':
 
         startChrome()
         chromeUp = True
-
-        def runChrome():
-            file_path = input('Enter file path: ')
-            updateIndividualPage(course_id, headers, file_path)
-
-        while chromeUp:
-            runChrome()
-
+        watch(args.watchpath)
 
 #Function specifically for MNSTL One Time Use
 #def updatePageTitles(course_id, headers, pattern):
