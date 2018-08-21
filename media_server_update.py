@@ -42,7 +42,8 @@ def upload_css_sftp(course, sub_course=None):
         sftp.close()
         transport.close()
         print(bcolors.WARNING + 'CSS Uploaded via SFTP (OLD MEDIA)' + bcolors.ENDC)
-    except:
+    except Exception as e:
+        print(e)
         print(bcolors.FAIL + 'No concat.css file' + bcolors.ENDC)
 
 
@@ -70,7 +71,8 @@ def upload_js_sftp(course, sub_course=None):
         sftp.close()
         transport.close()
         print(bcolors.WARNING + 'JS Uploaded via SFTP (OLD MEDIA)' + bcolors.ENDC)
-    except:
+    except Exception as e:
+        print(e)
         print(bcolors.FAIL + 'No concat.js file' + bcolors.ENDC)
 
 
@@ -104,7 +106,8 @@ def upload_html_sftp(course, sub_course=None):
 
         sftp.close()
         transport.close()
-    except:
+    except Exception as e:
+        print(e)
         print(bcolors.FAIL + 'No HTML file' + bcolors.ENDC)
         raise
 
@@ -128,7 +131,8 @@ def upload_html_aws(course, sub_course=None):
             s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/html/{m}'.format(c=course, sc=sub_course, m=menu_name), Body=data)
             data.close()
             print(bcolors.WARNING + '{}: HTML Uploaded to AWS'.format(menu_name) + bcolors.ENDC)
-    except:
+    except Exception as e:
+        print(e)
         print(bcolors.FAIL + 'No HTML file' + bcolors.ENDC)
         raise
 
@@ -149,7 +153,8 @@ def upload_js_aws(course, sub_course=None):
         s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/js/concat.js'.format(c=course, sc=sub_course), Body=data)
         data.close()
         print(bcolors.WARNING + 'JS Uploaded to AWS' + bcolors.ENDC)
-    except:
+    except Exception as e:
+        print(e)
         print(bcolors.FAIL + 'No JS file' + bcolors.ENDC)
         raise
 
@@ -170,7 +175,8 @@ def upload_js_aws(course, sub_course=None):
         s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/js/concat.js'.format(c=course, sc=sub_course), Body=data)
         data.close()
         print(bcolors.WARNING + 'JS Uploaded to AWS' + bcolors.ENDC)
-    except:
+    except Exception as e:
+        print(e)
         print(bcolors.FAIL + 'No JS file' + bcolors.ENDC)
         raise
 
@@ -191,7 +197,8 @@ def upload_css_aws(course, sub_course=None):
         s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/css/concat.css'.format(c=course, sc=sub_course), Body=data)
         data.close()
         print(bcolors.WARNING + 'CSS Uploaded to AWS' + bcolors.ENDC)
-    except:
+    except Exception as e:
+        print(e)
         print(bcolors.FAIL + 'No CSS file' + bcolors.ENDC)
         raise
 

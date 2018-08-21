@@ -212,16 +212,19 @@ def getPageInformation(course_id, page_url, headers):
 #Returns either 0 or 1 depending on if update was successful
 def updateIndividualPage(course_id, headers, file_path, page_name=None):
     def getPageInfo():
-        with open(file_path, 'r') as f:
-            contents = f.read()
-            patterns = ['<span url="([^\n]+)" courses="([^\n]+)"></span>', '<span url="([^\n]+)"></span>', '<span courses="([^\n]+)"></span>']
-            for i in range(len(patterns)):
-                m = re.search(patterns[i], contents)
-                if m is not None:
-                    return m.groups(), i, contents
+        try: 
+            with open(file_path, 'r') as f:
+                contents = f.read()
+                patterns = ['<span url="([^\n]+)" courses="([^\n]+)"></span>', '<span url="([^\n]+)"></span>', '<span courses="([^\n]+)"></span>']
+                for i in range(len(patterns)):
+                    m = re.search(patterns[i], contents)
+                    if m is not None:
+                        return m.groups(), i, contents
 
-        return None, None, contents
-        #print('No variables provided in command or file for: {}'.format(file_path))
+            return None, None, contents
+            #print('No variables provided in command or file for: {}'.format(file_path))
+        except IsADirectoryError:
+            pass
 
     def checkPageExistsInCanvas(url):
         r = requests.get(url, headers=headers)

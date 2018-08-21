@@ -1,3 +1,4 @@
+argh==0.26.2
 asn1crypto==0.24.0
 awscli==1.15.59
 backports.functools-lru-cache==1.5
@@ -29,6 +30,7 @@ MarkupSafe==1.0
 more-itertools==4.2.0
 openpyxl==2.5.4
 paramiko==2.4.1
+pathtools==0.1.2
 pdfkit==0.6.1
 pelican==3.7.1
 Pillow==5.0.0
@@ -56,3 +58,4 @@ tinify==1.5.1
 Unidecode==1.0.22
 urllib3==1.22
 virtualenv==15.2.0
+watchdog==0.8.3
