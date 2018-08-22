@@ -48,15 +48,26 @@ def getUserInfoByName(name):
             print(user)
 
 
+def printUserInfo(search_term):
+    users = listUsers()
+    for user in users:
+        if search_term.isdigit():
+            if search_term.lower() == str(user['id']).lower():
+                print(user)
+        else:
+            if search_term.lower() in user['name'].lower():
+                print(user)
+
+
 def getUserInfo(search_term):
     users = listUsers()
     for user in users:
         if search_term.isdigit():
-            if search_term == str( user['id']):
-                print(user)
+            if search_term.lower() == str(user['id']).lower():
+                return user
         else:
-            if search_term in user['name']:
-                print(user)
+            if search_term.lower() in user['name'].lower():
+                return user
 
 
 def deleteDeprecatedUsers():
@@ -94,8 +105,9 @@ def getUserEnrollments():
 
 
 def deleteUser(user_id):
-    locked_users = [345, 79]
-    if user_id not in locked_users:
+    user = getUserInfo(str(user_id))
+    locked_users = [345, 81, 104, 356, 79, 156, 161, 98, 322, 170, 89, 654, 489, 160, 351, 154, 200, 159]
+    if user_id not in locked_users and '@bscs.org' not in user['login_id']:
         print('User deleted: {}'.format(user_id))
 
 
@@ -103,21 +115,31 @@ def purgeUsers():
     courses_to_be_deleted = []
     user_enrollments = getUserEnrollments()
     today = datetime.today()
+    count = 0
 
     for key, values in user_enrollments.items(): 
+        only_in_deleted_courses = True
+
         if values[0] is not None:
             time_since_last_activity = today - values[0]
-            print(key, time_since_last_activity.days)
             if time_since_last_activity.days > 365:
                deleteUser(key)
+               count += 1
                continue
             else:
                 for i in range(1, len(values)):
                     if values[i][0] not in courses_to_be_deleted:
-                        deleteUser(key)
+                        only_in_deleted_courses = False
                         continue
+
+            if only_in_deleted_courses == True:
+                deleteUser(key)
+                count += 1
         else:
             deleteUser(key)
+            count += 1
+
+    print(bcolors.WARNING + '{} users deleted out of {} in Canvas'.format(count, len(user_enrollments)) + bcolors.ENDC)
 
 
 if __name__ == '__main__':

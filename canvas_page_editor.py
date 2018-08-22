@@ -9,7 +9,7 @@ import chrome
 from file_functions import getHtmlFolders, globHtml
 from pages import updateIndividualPage, updateCoursePages, updatePageName, getPageInformation
 from courses import updateCourseName, updateCourseCode, listCourses
-from users import listUsers, getUserInfo
+from users import listUsers, printUserInfo, purgeUsers
 
 #TODO: Add variable types to improve readability using typing.py lib
 #import typing
@@ -55,6 +55,7 @@ def selectAction():
     parser_users = subparsers.add_parser('users', help='Commands to use when doing user specific tasks')
     parser_users.add_argument('-ll', '--list', action='count', help="Lists all users in Canvas instance")
     parser_users.add_argument('-s', '--search', action='store', help="Name of user to search for", type=str)
+    parser_users.add_argument('-p', '--purge', action='count', help="Command to remove old and unwanted users from Canvas instance.")
     parser_users.set_defaults(which='users')
 
     #commands for courses information
@@ -111,8 +112,11 @@ if __name__  == '__main__':
     if args.which == 'users':
         if args.list is not None:
             listUsers()
+        elif args.purge is not None:
+            confirm = input('Type Canvas admin password to initiate THE PURGE: ')
+            purgeUsers() if confirm == auth.canvas_password else print('PURGE DENIED')
         else:
-            getUserInfo(args.search)
+            printUserInfo(args.search)
 
     if args.which == 'courses':
         if args.list is not None:
