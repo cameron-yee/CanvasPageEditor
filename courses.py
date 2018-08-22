@@ -2,6 +2,7 @@ from colors import bcolors
 import requests
 import json
 import auth
+import pprint
 
 #Create a new course in Canvas
 def createNewCourse(course_name, headers):
@@ -40,3 +41,50 @@ def updateCourseCode(new_course_code, course_id, headers):
     print(bcolors.BOLD + 'Updated course code for course {}'.format(course_id) + bcolors.ENDC) 
     print(bcolors.WARNING + 'Old course code: {}'.format(old_course_code) + bcolors.ENDC) 
     print(bcolors.WARNING + 'New course code: {}'.format(new_course_code) + bcolors.ENDC) 
+    
+
+def listCourses():
+    #count = 0
+    courses  = []
+    isNext = True
+    first = True
+
+    url = 'https://bscs.instructure.com/api/v1/courses?per_page=1000&page=1&sort=name&order=asc'
+    r = requests.get(url, headers=auth.headers)
+
+    response = r.json()
+
+    try:
+        while first:
+            r = requests.get(r.links['current']['url'], headers=auth.headers)
+            # print(r.links['current']['url'])
+            data = r.json()
+            for course in data:
+                courses.append(course)
+            first = False
+        while isNext:
+            r = requests.get(r.links['next']['url'], headers=auth.headers)
+            data = r.json()
+            for course in data:
+                courses.append(course)
+            #count += 1
+            # print(r.links['next']['url'])
+    except KeyError:
+        isNext = False
+
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(courses)
+    return courses
+
+
+#Manual hardcoded list of courses required
+def deleteCourses():
+    courses_to_delete = []
+    
+    courses = listCourses()
+    
+    for course in courses:
+        if course['name'] in courses_to_delete:
+            url = auth.base_url + str(course['id'])
+            r = requests.delete(url, headers=auth.headers)
+            print(bcolors.WARNING + 'COURSE DELETED: {}'.format(course['name']) + bcolors.ENDC)

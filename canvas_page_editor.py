@@ -8,7 +8,8 @@ from media_server_update import *
 import chrome
 from file_functions import getHtmlFolders, globHtml
 from pages import updateIndividualPage, updateCoursePages, updatePageName, getPageInformation
-from courses import updateCourseName, updateCourseCode
+from courses import updateCourseName, updateCourseCode, listCourses
+from users import listUsers, getUserInfo
 
 #TODO: Add variable types to improve readability using typing.py lib
 #import typing
@@ -49,6 +50,17 @@ def selectAction():
     parser_chrome = subparsers.add_parser('chrome', help='Commands to use when using capi with chromerefresh')
     parser_chrome.add_argument('watchpath', help="Path to watch for content changes", type=str)
     parser_chrome.set_defaults(which='chrome')
+
+    #commands for users
+    parser_users = subparsers.add_parser('users', help='Commands to use when doing user specific tasks')
+    parser_users.add_argument('-ll', '--list', action='count', help="Lists all users in Canvas instance")
+    parser_users.add_argument('-s', '--search', action='store', help="Name of user to search for", type=str)
+    parser_users.set_defaults(which='users')
+
+    #commands for courses information
+    parser_courses = subparsers.add_parser('courses', help='Commands to use when getting course info')
+    parser_courses.add_argument('-ll', '--list', action='count', help="Add flag to view all courses")
+    parser_courses.set_defaults(which='courses')
     
     args = parser.parse_args()
     return args
@@ -96,3 +108,12 @@ if __name__  == '__main__':
         auth.chromeUp = True
         chrome.watch(args.watchpath)
 
+    if args.which == 'users':
+        if args.list is not None:
+            listUsers()
+        else:
+            getUserInfo(args.search)
+
+    if args.which == 'courses':
+        if args.list is not None:
+            listCourses()
