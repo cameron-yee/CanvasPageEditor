@@ -14,7 +14,7 @@ def getCoursePages(course_id, headers):
     urls  = []
     isNext = True
     first = True
-    url = url_base + course_id + '/pages?per_page=300&page=1&sort=title&order=asc'
+    url = auth.url_base + course_id + '/pages?per_page=300&page=1&sort=title&order=asc'
     r = requests.get(url, headers=headers, timeout=20)
 
     try:
@@ -58,7 +58,7 @@ def updateCoursePages(top_directory, course_id):
 
     print(bcolors.BOLD + 'Success!' + bcolors.ENDC) 
     if course_id is not None:
-        urls = getCoursePages(course_id, headers) #List of all urls of canvas pages in given course
+        urls = getCoursePages(course_id, auth.headers) #List of all urls of canvas pages in given course
         print(bcolors.WARNING + '{0} pages updated out of {1} course pages'.format(count, len(urls)) + bcolors.ENDC)
 
     print(bcolors.WARNING + '{0} pages updated out of {1} given files'.format(count, len(html_files)) + bcolors.ENDC)

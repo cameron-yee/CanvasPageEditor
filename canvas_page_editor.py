@@ -8,8 +8,8 @@ from media_server_update import *
 import chrome
 from file_functions import getHtmlFolders, globHtml
 from pages import updateIndividualPage, updateCoursePages, updatePageName, getPageInformation
-from courses import updateCourseName, updateCourseCode, listCourses
-from users import listUsers, printUserInfo, purgeUsers
+from courses import updateCourseName, updateCourseCode, listCourses, deleteCourses
+from users import listUsers, printUserInfo, purgeUsers, printUserEnrollments, deleteUser
 
 #TODO: Add variable types to improve readability using typing.py lib
 #import typing
@@ -54,13 +54,16 @@ def selectAction():
     #commands for users
     parser_users = subparsers.add_parser('users', help='Commands to use when doing user specific tasks')
     parser_users.add_argument('-ll', '--list', action='count', help="Lists all users in Canvas instance")
-    parser_users.add_argument('-s', '--search', action='store', help="Name of user to search for", type=str)
+    parser_users.add_argument('-s', '--search', action='store', help="Name or ID of user to search for", type=str)
     parser_users.add_argument('-p', '--purge', action='count', help="Command to remove old and unwanted users from Canvas instance.")
+    parser_users.add_argument('-e', '--enrollments', action='count', help="List enrollments for user that was searched for.")
+    parser_users.add_argument('-d', '--delete', action='store', help="ID of user to DELETE", type=int)
     parser_users.set_defaults(which='users')
 
     #commands for courses information
     parser_courses = subparsers.add_parser('courses', help='Commands to use when getting course info')
     parser_courses.add_argument('-ll', '--list', action='count', help="Add flag to view all courses")
+    parser_courses.add_argument('-dc', '--deletecourses', action='count', help="If present, will delete list of courses that are marked for deletion.")
     parser_courses.set_defaults(which='courses')
     
     args = parser.parse_args()
@@ -111,13 +114,21 @@ if __name__  == '__main__':
 
     if args.which == 'users':
         if args.list is not None:
-            listUsers()
+            listUsers(True)
         elif args.purge is not None:
-            confirm = input('Type Canvas admin password to initiate THE PURGE: ')
-            purgeUsers() if confirm == auth.canvas_password else print('PURGE DENIED')
+            confirm = input('Enter Canvas admin password to initiate THE PURGE: ')
+            purgeUsers() if confirm == auth.canvas_password else print('PURGE DENIED. Invalid password.')
+        elif args.delete is not None:
+            confirm = input('Enter Canvas admin password to delete user: ')
+            deleteUser(args.delete) if confirm == auth.canvas_password else print('ACTION DENIED. Invalid password.')
+        elif args.enrollments is not None:
+            printUserEnrollments(args.search)
         else:
             printUserInfo(args.search)
 
     if args.which == 'courses':
         if args.list is not None:
             listCourses()
+        if args.deletecourses is not None:
+            confirm = input('Enter Canvas admin password to delete courses: ')
+            deleteCourses() if confirm == auth.canvas_password else print('ACTION DENIED. Invalid password.')

@@ -79,12 +79,12 @@ def listCourses():
 
 #Manual hardcoded list of courses required
 def deleteCourses():
-    courses_to_delete = []
+    courses_to_delete = [136, 138, 22, 105, 116, 113, 95, 104, 101, 103, 119, 134, 38, 54, 108, 114, 110, 50, 55, 49, 56, 129, 132, 127, 133, 31, 59, 32, 58, 99, 98]
+    vp_courses = [43, 45] #KEEP Course delete users
     
-    courses = listCourses()
+    #courses = listCourses()
     
-    for course in courses:
-        if course['name'] in courses_to_delete:
-            url = auth.base_url + str(course['id'])
-            r = requests.delete(url, headers=auth.headers)
-            print(bcolors.WARNING + 'COURSE DELETED: {}'.format(course['name']) + bcolors.ENDC)
+    for course_id in courses_to_delete:
+        url = auth.base_url + str(course_id)
+        r = requests.delete(url, headers=auth.headers)
+        print(bcolors.FAIL + 'COURSE DELETED: {}'.format(course_id) + bcolors.ENDC)

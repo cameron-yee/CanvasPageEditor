@@ -1,14 +1,13 @@
 #!/usr/local/bin/python3
-#from colors import bcolors
+from colors import bcolors
 import requests
 import json
 import auth
 import pprint
 from datetime import datetime, timedelta
 
-#Create a new course in Canvas
-def listUsers():
-    #count = 0
+#Returns a list of all users
+def listUsers(p=False):
     users  = []
     isNext = True
     first = True
@@ -21,7 +20,6 @@ def listUsers():
     try:
         while first:
             r = requests.get(r.links['current']['url'], headers=auth.headers)
-            # print(r.links['current']['url'])
             data = r.json()
             for user in data:
                 users.append(user)
@@ -31,23 +29,17 @@ def listUsers():
             data = r.json()
             for user in data:
                 users.append(user)
-            #count += 1
-            # print(r.links['next']['url'])
     except KeyError:
         isNext = False
 
-    #pp = pprint.PrettyPrinter(indent=4)
-    #pp.pprint(users)
+    if p:
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(users)
+
     return users
 
 
-def getUserInfoByName(name):
-    users = listUsers()
-    for user in users:
-        if name in user['name']:
-            print(user)
-
-
+#Prints user json repsonse object for searched user
 def printUserInfo(search_term):
     users = listUsers()
     for user in users:
@@ -59,6 +51,7 @@ def printUserInfo(search_term):
                 print(user)
 
 
+#Returns user json repsonse object for searched user
 def getUserInfo(search_term):
     users = listUsers()
     for user in users:
@@ -70,12 +63,19 @@ def getUserInfo(search_term):
                 return user
 
 
-def deleteDeprecatedUsers():
-    locked_user_ids = []
-    bscs_login_id = '@bscs.org'
+#Prints out user enrollment json response objects for a searched user
+def printUserEnrollments(search_term):
+    user = getUserInfo(search_term)
+    user_id = user['id']
+    url = 'https://bscs.instructure.com/api/v1/users/{}/enrollments'.format(user_id)
+    r = requests.get(url, headers=auth.headers)
+    enrollments = r.json()
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(enrollments)
 
 
-def getUserEnrollments():
+#Returns dictionary of users with last activity overall and all enrolled courses with last activity in each course
+def getAllUserEnrollments():
     users = listUsers()
     user_enrollments = {}
 
@@ -92,28 +92,34 @@ def getUserEnrollments():
                 activity = datetime.strptime(enrollment['last_activity_at'][:10], '%Y-%m-%d')
                 most_latest_activity = activity if activity > most_latest_activity else most_latest_activity
                 user_enrollments[user_id].append((enrollment['course_id'], datetime.strptime(enrollment['last_activity_at'][:10], '%Y-%m-%d')))
-                #pp = pprint.PrettyPrinter(indent=4)
-                #pp.pprint(user_enrollments[user_id])
 
         most_latest_activity = None if most_latest_activity == datetime(2000, 1, 1) else most_latest_activity
         user_enrollments[user_id].insert(0, most_latest_activity)
-        #pp = pprint.PrettyPrinter(indent=4)
-        #pp.pprint(user_enrollments)
 
-    #pp.pprint(user_enrollments)
     return user_enrollments #Dict: key = user_id, values = [most_latest_activity, (course_id, latest_activity_in_course)]
 
 
+#WARNING: THIS FUNCTION IS LIVE
+#Deletes the specified uesr from our Canvas account
 def deleteUser(user_id):
     user = getUserInfo(str(user_id))
-    locked_users = [345, 81, 104, 356, 79, 156, 161, 98, 322, 170, 89, 654, 489, 160, 351, 154, 200, 159]
+    locked_users = [345, 81, 104, 356, 79, 156, 161, 98, 322, 170, 89, 654, 489, 160, 351, 154, 200, 159, 528, 153, 651, 481, 650, 649]
     if user_id not in locked_users and '@bscs.org' not in user['login_id']:
-        print('User deleted: {}'.format(user_id))
+        url = 'https://bscs.instructure.com/api/v1/accounts/1/users/{}'.format(user_id)
+        r = requests.delete(url, headers=auth.headers)
+        print(bcolors.FAIL + 'User deleted: {}'.format(user_id) + bcolors.ENDC)
+    else:
+        print(bcolors.WARNING + 'User NOT deleted: {}.  This user is protected against deletion.'.format(user_id) + bcolors.ENDC)
 
 
+#Determines whether a user should be deleted based on 3 criteria:
+#   1. User's only enrollments are in courses that will be deleted
+#   2. User is not enrolled in any course
+#   3. User's last activity is greater than 1 year ago
+#   4. User doesn't have any activity CURRENTLY DISABLED B/C of Student registrations
 def purgeUsers():
-    courses_to_be_deleted = []
-    user_enrollments = getUserEnrollments()
+    courses_to_delete_users_from = [136, 138, 22, 105, 116, 113, 95, 104, 101, 103, 119, 134, 38, 54, 108, 114, 110, 50, 55, 49, 56, 129, 132, 127, 133, 31, 59, 32, 58, 99, 98, 43, 45]
+    user_enrollments = getAllUserEnrollments()
     today = datetime.today()
     count = 0
 
@@ -128,22 +134,22 @@ def purgeUsers():
                continue
             else:
                 for i in range(1, len(values)):
-                    if values[i][0] not in courses_to_be_deleted:
+                    if values[i][0] not in courses_to_delete_users_from:
                         only_in_deleted_courses = False
                         continue
 
             if only_in_deleted_courses == True:
                 deleteUser(key)
                 count += 1
-        else:
-            deleteUser(key)
-            count += 1
+        #else:
+        #    deleteUser(key)
+        #    count += 1
 
     print(bcolors.WARNING + '{} users deleted out of {} in Canvas'.format(count, len(user_enrollments)) + bcolors.ENDC)
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     #listUsers()
     #getUserInfoByName('Jonathan')
     #getUserEnrollments()
-    purgeUsers()
+    #purgeUsers()
