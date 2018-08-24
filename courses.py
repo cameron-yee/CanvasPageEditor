@@ -79,7 +79,7 @@ def listCourses():
 
 #Manual hardcoded list of courses required
 def deleteCourses():
-    courses_to_delete = [136, 138, 22, 105, 116, 113, 95, 104, 101, 103, 119, 134, 38, 54, 108, 114, 110, 50, 55, 49, 56, 129, 132, 127, 133, 31, 59, 32, 58, 99, 98]
+    courses_to_delete = [136, 138, 22, 105, 116, 113, 95, 104, 101, 103, 119, 134, 38, 54, 108, 114, 110, 50, 55, 49, 56, 129, 132, 127, 133, 31, 59, 32, 58, 99, 98, 107]
     vp_courses = [43, 45] #KEEP Course delete users
     
     #courses = listCourses()
