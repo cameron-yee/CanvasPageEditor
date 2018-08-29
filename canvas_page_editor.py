@@ -8,7 +8,7 @@ from media_server_update import *
 import chrome
 from file_functions import getHtmlFolders, globHtml
 from pages import updateIndividualPage, updateCoursePages, updatePageName, getPageInformation
-from courses import updateCourseName, updateCourseCode, listCourses, deleteCourses
+from courses import updateCourseName, updateCourseCode, listCourses, deleteCourses, setDefaultCourseUsersPassword
 from users import listUsers, printUserInfo, purgeUsers, printUserEnrollments, deleteUser
 
 #TODO: Add variable types to improve readability using typing.py lib
@@ -64,6 +64,8 @@ def selectAction():
     parser_courses = subparsers.add_parser('courses', help='Commands to use when getting course info')
     parser_courses.add_argument('-ll', '--list', action='count', help="Add flag to view all courses")
     parser_courses.add_argument('-dc', '--deletecourses', action='count', help="If present, will delete list of courses that are marked for deletion.")
+    parser_courses.add_argument('-sp', '--setpassword', action='store', help="Enter password to set for users in course.", type=str)
+    parser_courses.add_argument('cid', help="Enter course ID", nargs='?', default=None, type=str)
     parser_courses.set_defaults(which='courses')
     
     args = parser.parse_args()
@@ -132,3 +134,6 @@ if __name__  == '__main__':
         if args.deletecourses is not None:
             confirm = input('Enter Canvas admin password to delete courses: ')
             deleteCourses() if confirm == auth.canvas_password else print('ACTION DENIED. Invalid password.')
+        if args.setpassword is not None and args.cid is not None:
+            setDefaultCourseUsersPassword(args.cid, args.setpassword)
+
