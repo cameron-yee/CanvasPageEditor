@@ -144,7 +144,7 @@ def getAllUserEnrollments():
 #Deletes the specified uesr from our Canvas account
 def deleteUser(user_id):
     user = getUserInfo(str(user_id))
-    locked_users = [345, 81, 104, 356, 79, 156, 161, 98, 322, 170, 89, 654, 489, 160, 351, 154, 200, 159, 528, 153, 651, 650, 649, 106, 352, 411, 191, 392, 527, 529, 530]
+    locked_users = [345, 81, 104, 356, 79, 156, 161, 98, 322, 170, 89, 654, 489, 160, 351, 154, 200, 159, 528, 153, 651, 650, 649, 106, 352, 411, 191, 392, 527, 529, 530, 383]
     if user_id not in locked_users and '@bscs.org' not in user['login_id']:
         url = 'https://bscs.instructure.com/api/v1/accounts/1/users/{}'.format(user_id)
         r = requests.delete(url, headers=auth.headers)
@@ -160,7 +160,8 @@ def deleteUser(user_id):
 #   2. User is not enrolled in any course
 #   3. User's last activity is greater than 1 year ago
 def purgeUsers():
-    courses_to_delete_users_from = [136, 138, 22, 105, 116, 113, 95, 104, 101, 103, 119, 134, 38, 54, 108, 114, 110, 50, 55, 49, 56, 129, 132, 127, 133, 31, 59, 32, 58, 99, 98] #43, 45
+    #courses_to_delete_users_from = [136, 138, 22, 105, 116, 113, 95, 104, 101, 103, 119, 134, 38, 54, 108, 114, 110, 50, 55, 49, 56, 129, 132, 127, 133, 31, 59, 32, 58, 99, 98] #43, 45
+    courses_to_delete_users_from = [43, 45] 
     user_enrollments = getAllUserEnrollments()
     today = datetime.today()
     count = 0

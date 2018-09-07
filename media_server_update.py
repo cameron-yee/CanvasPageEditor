@@ -41,7 +41,7 @@ def upload_css_sftp(course, sub_course=None):
 
         sftp.close()
         transport.close()
-        print(bcolors.WARNING + 'CSS Uploaded via SFTP (OLD MEDIA)' + bcolors.ENDC)
+        print(bcolors.WARNING + 'CSS Uploaded via SFTP' + bcolors.ENDC)
     except Exception as e:
         print(e)
         print(bcolors.FAIL + 'No concat.css file' + bcolors.ENDC)
@@ -70,7 +70,7 @@ def upload_js_sftp(course, sub_course=None):
 
         sftp.close()
         transport.close()
-        print(bcolors.WARNING + 'JS Uploaded via SFTP (OLD MEDIA)' + bcolors.ENDC)
+        print(bcolors.WARNING + 'JS Uploaded via SFTP' + bcolors.ENDC)
     except Exception as e:
         print(e)
         print(bcolors.FAIL + 'No concat.js file' + bcolors.ENDC)
@@ -100,7 +100,7 @@ def upload_html_sftp(course, sub_course=None):
             menu_name = os.path.basename(menu)
             remote_html_path = '{rb}/{c}{scr}/html/{m}'.format(rb=remote_base, c=course, scr=sub_course_remote, m=menu_name)
             sftp.put(menu, remote_html_path)
-            print(bcolors.WARNING + '{} Uploaded via SFTP (OLD MEDIA)'.format(menu_name) + bcolors.ENDC)
+            print(bcolors.WARNING + '{} Uploaded via SFTP'.format(menu_name) + bcolors.ENDC)
 
         print(bcolors.FAIL + 'No HTML file' + bcolors.ENDC) if html_menus == [] else print('')
 
@@ -112,95 +112,6 @@ def upload_html_sftp(course, sub_course=None):
         raise
 
 
-def upload_html_aws(course, sub_course=None):
-    try:
-        if sub_course is not None:
-            sub_course_local = 'courses/{}/'.format(sub_course)
-        else:
-            sub_course = ''
-            sub_course_local = ''
-
-        s3 = boto3.resource('s3')
-        html_folder = '{lb}/{c}/{scl}resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
-        html_menus = glob(html_folder)
-
-        for menu in html_menus:
-            data = open(menu,'rb')
-            menu_name = os.path.basename(menu)
-
-            s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/html/{m}'.format(c=course, sc=sub_course, m=menu_name), Body=data)
-            data.close()
-            print(bcolors.WARNING + '{}: HTML Uploaded to AWS'.format(menu_name) + bcolors.ENDC)
-    except Exception as e:
-        print(e)
-        print(bcolors.FAIL + 'No HTML file' + bcolors.ENDC)
-        raise
-
-
-def upload_js_aws(course, sub_course=None):
-    try:
-        if sub_course is not None:
-            sub_course_local = 'courses/{}/'.format(sub_course)
-        else:
-            sub_course = ''
-            sub_course_local = ''
-
-
-        local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
-        data = open(local_js_path, 'rb')
-
-        s3 = boto3.resource('s3')
-        s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/js/concat.js'.format(c=course, sc=sub_course), Body=data)
-        data.close()
-        print(bcolors.WARNING + 'JS Uploaded to AWS' + bcolors.ENDC)
-    except Exception as e:
-        print(e)
-        print(bcolors.FAIL + 'No JS file' + bcolors.ENDC)
-        raise
-
-
-def upload_js_aws(course, sub_course=None):
-    try:
-        if sub_course is not None:
-            sub_course_local = 'courses/{}/'.format(sub_course)
-        else:
-            sub_course = ''
-            sub_course_local = ''
-
-
-        local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
-        data = open(local_js_path, 'rb')
-
-        s3 = boto3.resource('s3')
-        s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/js/concat.js'.format(c=course, sc=sub_course), Body=data)
-        data.close()
-        print(bcolors.WARNING + 'JS Uploaded to AWS' + bcolors.ENDC)
-    except Exception as e:
-        print(e)
-        print(bcolors.FAIL + 'No JS file' + bcolors.ENDC)
-        raise
-
-
-def upload_css_aws(course, sub_course=None):
-    try:
-        if sub_course is not None:
-            sub_course_local = 'courses/{}/'.format(sub_course)
-        else:
-            sub_course = ''
-            sub_course_local = ''
-
-
-        local_css_path = '{lb}/{c}/{scl}resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
-        data = open(local_css_path, 'rb')
-
-        s3 = boto3.resource('s3')
-        s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/css/concat.css'.format(c=course, sc=sub_course), Body=data)
-        data.close()
-        print(bcolors.WARNING + 'CSS Uploaded to AWS' + bcolors.ENDC)
-    except Exception as e:
-        print(e)
-        print(bcolors.FAIL + 'No CSS file' + bcolors.ENDC)
-        raise
 
 
 def upload_img_aws(img_path, course, folder, sub_course=None):
@@ -227,15 +138,15 @@ def upload_img_aws(img_path, course, folder, sub_course=None):
 
 def upload_all(course, sub_course=None):
     upload_css_sftp(course, sub_course)
-    upload_css_aws(course, sub_course)
     upload_js_sftp(course, sub_course)
-    upload_js_aws(course, sub_course)
     upload_html_sftp(course, sub_course)
-    upload_html_aws(course, sub_course)
+    #upload_css_aws(course, sub_course)
+    #upload_js_aws(course, sub_course)
+    #upload_html_aws(course, sub_course)
     print(bcolors.OKBLUE + 'DONE' + bcolors.ENDC)
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     #upload_css('vatl')
     #upload_css_sftp('vatl')
     #upload_js('vatl')
@@ -245,39 +156,13 @@ if __name__ == '__main__':
     #upload_all('3dmss', 'pd')
     #refresh_chrome()
     #command_input()
-    upload_img_aws('/Users/cyee/Downloads/astronaut.jpg','3dmss','images','se')
+    #upload_img_aws('/Users/cyee/Downloads/astronaut.jpg','3dmss','images','se')
     #upload_css_aws('3dmss', 'se')
 
 
-
-
-
-
-
-
-
-
-
-
-
-#def refresh_chrome():
-#    browser = webdriver.Chrome()
-#    browser.get('http://seleniumhq.org/')
-#
-#
-#def command_input():
-#    inp = input('Enter course: ')
-#    upload_all(inp)
-#    command_input()
-#
-#
-#def stay_up():
-#    while up == True:
-#        pass
-
-
-
-
+#####################################################################################################
+#                                   FTP Upload Functions
+#####################################################################################################
 #def upload_css(course, sub_course=None):
 #    try: 
 #        if sub_course is not None:
@@ -348,3 +233,97 @@ if __name__ == '__main__':
 #        print(bcolors.WARNING + 'HTML Uploaded to FTP' + bcolors.ENDC)
 #    except (ftplib.error_perm, FileNotFoundError):
 #        print(bcolors.FAIL + 'No HTML file' + bcolors.ENDC)
+
+
+#####################################################################################################
+#                                   AWS Upload Functions
+#####################################################################################################
+#def upload_html_aws(course, sub_course=None):
+#    try:
+#        if sub_course is not None:
+#            sub_course_local = 'courses/{}/'.format(sub_course)
+#        else:
+#            sub_course = ''
+#            sub_course_local = ''
+#
+#        s3 = boto3.resource('s3')
+#        html_folder = '{lb}/{c}/{scl}resources/html/*.html'.format(lb=local_base, c=course, scl=sub_course_local)
+#        html_menus = glob(html_folder)
+#
+#        for menu in html_menus:
+#            data = open(menu,'rb')
+#            menu_name = os.path.basename(menu)
+#
+#            s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/html/{m}'.format(c=course, sc=sub_course, m=menu_name), Body=data)
+#            data.close()
+#            print(bcolors.WARNING + '{}: HTML Uploaded to AWS'.format(menu_name) + bcolors.ENDC)
+#    except Exception as e:
+#        print(e)
+#        print(bcolors.FAIL + 'No HTML file' + bcolors.ENDC)
+#        raise
+#
+#
+#def upload_js_aws(course, sub_course=None):
+#    try:
+#        if sub_course is not None:
+#            sub_course_local = 'courses/{}/'.format(sub_course)
+#        else:
+#            sub_course = ''
+#            sub_course_local = ''
+#
+#
+#        local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
+#        data = open(local_js_path, 'rb')
+#
+#        s3 = boto3.resource('s3')
+#        s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/js/concat.js'.format(c=course, sc=sub_course), Body=data)
+#        data.close()
+#        print(bcolors.WARNING + 'JS Uploaded to AWS' + bcolors.ENDC)
+#    except Exception as e:
+#        print(e)
+#        print(bcolors.FAIL + 'No JS file' + bcolors.ENDC)
+#        raise
+#
+#
+#def upload_js_aws(course, sub_course=None):
+#    try:
+#        if sub_course is not None:
+#            sub_course_local = 'courses/{}/'.format(sub_course)
+#        else:
+#            sub_course = ''
+#            sub_course_local = ''
+#
+#
+#        local_js_path = '{lb}/{c}/{scl}resources/js/concat/concat.js'.format(lb=local_base, c=course, scl=sub_course_local)
+#        data = open(local_js_path, 'rb')
+#
+#        s3 = boto3.resource('s3')
+#        s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/js/concat.js'.format(c=course, sc=sub_course), Body=data)
+#        data.close()
+#        print(bcolors.WARNING + 'JS Uploaded to AWS' + bcolors.ENDC)
+#    except Exception as e:
+#        print(e)
+#        print(bcolors.FAIL + 'No JS file' + bcolors.ENDC)
+#        raise
+#
+#
+#def upload_css_aws(course, sub_course=None):
+#    try:
+#        if sub_course is not None:
+#            sub_course_local = 'courses/{}/'.format(sub_course)
+#        else:
+#            sub_course = ''
+#            sub_course_local = ''
+#
+#
+#        local_css_path = '{lb}/{c}/{scl}resources/styles/css/concat/concat.css'.format(lb=local_base, c=course, scl=sub_course_local)
+#        data = open(local_css_path, 'rb')
+#
+#        s3 = boto3.resource('s3')
+#        s3.Bucket('media-bscs-org').put_object(Key='canvas/{c}/{sc}/css/concat.css'.format(c=course, sc=sub_course), Body=data)
+#        data.close()
+#        print(bcolors.WARNING + 'CSS Uploaded to AWS' + bcolors.ENDC)
+#    except Exception as e:
+#        print(e)
+#        print(bcolors.FAIL + 'No CSS file' + bcolors.ENDC)
+#        raise

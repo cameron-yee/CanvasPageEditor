@@ -93,13 +93,13 @@ if __name__  == '__main__':
     if args.which == 'static':
         course = args.course_prefix
         if args.css is not None:
-            upload_css_aws(course, args.subcourse)
+            #upload_css_aws(course, args.subcourse)
             upload_css_sftp(course, args.subcourse)
         if args.js is not None:
-            upload_js_aws(course, args.subcourse)
+            #upload_js_aws(course, args.subcourse)
             upload_js_sftp(course, args.subcourse)
         if args.html is not None:
-            upload_html_aws(course, args.subcourse)
+            #upload_html_aws(course, args.subcourse)
             upload_html_sftp(course, args.subcourse)
         if args.img is not None:
             upload_img_aws(args.img, course, args.folder, args.subcourse)
