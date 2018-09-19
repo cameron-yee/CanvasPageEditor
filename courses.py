@@ -127,6 +127,7 @@ def getAllCourseUserLoginIDs(course_id):
     locked_users = [345, 81, 104, 356, 79, 156, 161, 98, 322, 170, 89, 654, 489, 160, 351, 154, 200, 159, 528, 153, 651, 650, 649, 106, 352, 411, 191, 392, 527, 529, 530]
 
     for user in users:
+        print(user)
         url = 'https://bscs.instructure.com/api/v1/users/{}/logins'.format(user['id'])
         r = requests.get(url, headers=auth.headers)
         user_login = r.json()

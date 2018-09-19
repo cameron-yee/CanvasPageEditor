@@ -34,7 +34,7 @@ def startChrome():
         sign_in_email = auth.browser.find_element_by_name('identifier').send_keys(auth.google_email + Keys.RETURN)
         time.sleep(1)
         sign_in_password = auth.browser.find_element_by_name('password').send_keys(auth.google_password + Keys.RETURN)
-        time.sleep(1)
+        time.sleep()
 
         auth.browser.get('https://bscs.instructure.com/courses')
         email_input = auth.browser.find_element_by_id('pseudonym_session_unique_id')
