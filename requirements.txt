@@ -29,7 +29,7 @@ Markdown==2.6.11
 MarkupSafe==1.0
 more-itertools==4.2.0
 openpyxl==2.5.4
-paramiko==2.4.1
+paramiko==2.10.1
 pathtools==0.1.2
 pdfkit==0.6.1
 pelican==3.7.1
