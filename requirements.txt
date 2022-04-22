@@ -42,7 +42,7 @@ pyexcel==0.5.8
 pyexcel-io==0.5.7
 Pygments==2.2.0
 PyNaCl==1.2.1
-PyPDF2==1.26.0
+PyPDF2==1.27.5
 python-dateutil==2.7.3
 pytz==2018.4
 PyYAML==3.13
